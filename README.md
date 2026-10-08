@@ -12,7 +12,7 @@ A calm, reliable personal memory and capture system designed to remain useful ev
 ## Prerequisites
 
 - **Node.js**: v22+ (Active LTS)
-- **pnpm**: v9+ (or v12+)
+- **npm**: v10+ (Standard Node.js package manager)
 - **Python**: 3.12+ / 3.14+
 - **uv**: Modern Python project and package manager
 
@@ -22,8 +22,8 @@ A calm, reliable personal memory and capture system designed to remain useful ev
 
 ```bash
 cd web
-pnpm install
-pnpm dev
+npm install
+npm run dev
 ```
 
 ### 2. Backend API (`api/`)

@@ -17,32 +17,27 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 12.10.1
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
-          cache-dependency-path: web/pnpm-lock.yaml
+          cache: npm
+          cache-dependency-path: web/package-lock.json
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: Type check
-        run: pnpm run typecheck
+        run: npm run typecheck
 
       - name: Lint
-        run: pnpm run lint
+        run: npm run lint
 
       - name: Unit & RLS tests
-        run: pnpm run test
+        run: npm test
 
       - name: Build production bundle
-        run: pnpm run build
+        run: npm run build
 
   api-ci:
     name: Backend API (Lint, Test)

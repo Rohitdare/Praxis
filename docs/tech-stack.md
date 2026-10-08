@@ -210,14 +210,14 @@ Recommended:
 ``` text
 Node: active LTS
 Python: supported 3.x minor pinned per backend
-Package manager: pnpm or npm; choose one and commit lockfile
+Package manager: npm; commit package-lock.json
 Python env: uv or pip + requirements lock
 Editor: VS Code-compatible
 Git hooks: optional pre-commit
 CI: GitHub Actions
 ```
 
-**ASSUMPTION:** use `pnpm` for the web workspace and `uv` for Python
+**DECISION:** use `npm` for the web workspace and `uv` for Python
 unless the implementation environment requires otherwise.
 
 ## 10. Cost

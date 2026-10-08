@@ -29,7 +29,7 @@ d:\sample-projects\bruno\
 │   ├── config.toml              # Local Supabase CLI configuration
 │   └── migrations/
 │       └── 20261008000000_initial_schema.sql # 8 tables, indexes, triggers, RLS policies
-├── web/                         # Vite + React 19 + TypeScript SPA (pnpm)
+├── web/                         # Vite + React 19 + TypeScript SPA (npm)
 │   ├── src/
 │   │   ├── components/
 │   │   │   ├── auth/
@@ -71,7 +71,7 @@ d:\sample-projects\bruno\
 
 ## 2. Existing Technologies
 
-- **Frontend (`web/`)**: Node.js 22 LTS, pnpm 12, Vite 8, React 19, TypeScript 6, Tailwind CSS v4 (`@tailwindcss/vite`), shadcn/ui, Radix UI primitives, Lucide React, react-router-dom 7, vite-plugin-pwa 2, @supabase/supabase-js 2, @tanstack/react-query, @fontsource/inter, Vitest, oxlint.
+- **Frontend (`web/`)**: Node.js 22 LTS, npm 11, Vite 8, React 19, TypeScript 6, Tailwind CSS v4 (`@tailwindcss/vite`), shadcn/ui, Radix UI primitives, Lucide React, react-router-dom 7, vite-plugin-pwa 2, @supabase/supabase-js 2, @tanstack/react-query, @fontsource/inter, Vitest, oxlint.
 - **Backend (`api/`)**: Python 3.14 / 3.12, uv 0.12, FastAPI 0.143, Uvicorn, Pydantic 2.14, HTTPX, Ruff, Pytest, Pytest-asyncio.
 - **Database (`supabase/`)**: PostgreSQL 15 schema migration, full Row Level Security (RLS) on all 8 tables, `set_updated_at` trigger, GIN full-text search index, compound cursor indexes.
 - **CI/CD (`.github/workflows/ci.yml`)**: Automated pipelines for web (lint, typecheck, test, build) and api (lint, format-check, test).
@@ -110,7 +110,7 @@ d:\sample-projects\bruno\
 | FastAPI scaffold (api/ folder) | Completed with `/health` and Pydantic schema |
 | GitHub Actions CI workflow | Completed (`.github/workflows/ci.yml`) |
 | .env.example and secret policy | Completed (`.env.example`) |
-| pnpm workspace selected and committed | Completed (`pnpm-lock.yaml`) |
+| npm package management selected and committed | Completed (`package-lock.json`) |
 | RLS isolation tests | Completed (`api/tests/test_rls_isolation.py`, `web/src/test/rls-isolation.test.ts`) |
 
 ### Phase 1 — Auth + Capture + local DB
@@ -161,7 +161,7 @@ tech-stack.md states: "free-tier content may be used to improve Google's product
 
 ### DEVIATION-01 — No package manager committed yet
 
-tech-stack.md assumes pnpm (ASSUMPTION T-01). No package.json or lockfile exists. The first scaffold command must establish pnpm and must not switch later.
+tech-stack.md specifies npm (ASSUMPTION T-01). `package-lock.json` is committed as the canonical lockfile.
 
 ---
 
@@ -169,7 +169,7 @@ tech-stack.md assumes pnpm (ASSUMPTION T-01). No package.json or lockfile exists
 
 | ID | Assumption |
 |----|-----------|
-| IMPL-A-01 | pnpm will be used as the frontend package manager (aligns with tech-stack.md ASSUMPTION T-01). |
+| IMPL-A-01 | npm will be used as the frontend package manager (aligns with tech-stack.md ASSUMPTION T-01). |
 | IMPL-A-02 | uv will be used for the FastAPI Python environment. |
 | IMPL-A-03 | Monorepo layout: web/ (Vite React SPA), api/ (FastAPI), docs/, supabase/ at repository root. Not specified in project documents; must be confirmed before scaffold. |
 | IMPL-A-04 | Google OAuth implemented first; magic link is the fallback. Both must be tested. |
@@ -194,10 +194,10 @@ Goal: Fresh DB migration + CI green. No user-visible features.
 **Step 2 — Web scaffold**
 ```
 cd web/
-pnpm create vite@latest . --template react-ts
-pnpm dlx shadcn@latest init --template vite
-pnpm add lucide-react @tanstack/react-query dexie @supabase/supabase-js @supabase/ssr vite-plugin-pwa react-router-dom
-pnpm add -D vitest @playwright/test
+npm create vite@latest . --template react-ts
+npx shadcn@latest init --template vite
+npm install lucide-react @tanstack/react-query dexie @supabase/supabase-js @supabase/ssr vite-plugin-pwa react-router-dom
+npm install -D vitest @playwright/test
 ```
 Tailwind CSS v4 installed via shadcn init. Verify tailwindVersion field.
 
