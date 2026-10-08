@@ -1,0 +1,34 @@
+# Node / Web dependencies & build outputs
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Python / FastAPI dependencies & virtualenvs
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# Environment files with sensitive credentials
+.env
+.env.production
+.env.local
+*.env
+!.env.example
+
+# Supabase local temp files
+.branches/
+.temp/
+
+# IDE & OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/
