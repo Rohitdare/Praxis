@@ -2,7 +2,7 @@ import type { ItemStatus, ItemType } from "@/lib/supabase/database.types"
 
 export interface LocalItem {
   id: string
-  user_id: string
+  user_id: string | null
   raw_input: string
   captured_at: string
   created_at: string

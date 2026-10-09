@@ -258,8 +258,8 @@ Backups are encrypted before leaving the database environment.
 
 ### Auth
 
-**FR-33 --- Authentication \[Must, Phase 1\]**\
-Use Supabase Auth; magic link or Google is the default assumption.
+**FR-33 --- Authentication [Must, Phase 1]**\
+Use Supabase Auth with two methods only: Email and password, and Google OAuth. Magic-link authentication is removed completely to avoid email rate limits and deliverability friction while ensuring hardened security.
 
 ## 6. Non-functional requirements
 
@@ -406,8 +406,8 @@ access = 0; AI privacy-policy violations = 0.
 
 -   **ASSUMPTION A-01:** The first release is single-person in practice
     but multi-user-safe in schema.
--   **ASSUMPTION A-02:** Google or magic-link authentication is
-    acceptable.
+-   **ASSUMPTION A-02:** Email/password and Google OAuth authentication are
+    the two supported methods; magic link is removed.
 -   **ASSUMPTION A-03:** Calendar remains internal; no external calendar
     sync is required in MVP.
 -   **ASSUMPTION A-04:** Offline editing is intentionally excluded from

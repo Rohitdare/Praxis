@@ -3,101 +3,284 @@ import { useAuth } from "@/lib/auth/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
+type AuthMode = "signin" | "signup" | "forgot"
+
 export function AuthPage() {
-  const { signInWithGoogle, signInWithOtp } = useAuth()
+  const {
+    signInWithGoogle,
+    signInWithPassword,
+    signUp,
+    resetPasswordForEmail,
+    updatePassword,
+    isRecoveryMode,
+  } = useAuth()
+
+  const [mode, setMode] = React.useState<AuthMode>("signin")
   const [email, setEmail] = React.useState("")
+  const [password, setPassword] = React.useState("")
+  const [confirmPassword, setConfirmPassword] = React.useState("")
   const [isGoogleLoading, setIsGoogleLoading] = React.useState(false)
-  const [isOtpLoading, setIsOtpLoading] = React.useState(false)
-  const [statusMessage, setStatusMessage] = React.useState<{ type: "success" | "error"; text: string } | null>(null)
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [statusMessage, setStatusMessage] = React.useState<{
+    type: "success" | "error"
+    text: string
+  } | null>(null)
+
+  const isPending = isGoogleLoading || isSubmitting
+
+  const handleModeChange = (newMode: AuthMode) => {
+    setMode(newMode)
+    setStatusMessage(null)
+    setPassword("")
+    setConfirmPassword("")
+  }
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true)
     setStatusMessage(null)
     const { error } = await signInWithGoogle()
     if (error) {
-      setStatusMessage({ type: "error", text: "Could not sign in. Please try again." })
+      setStatusMessage({
+        type: "error",
+        text: error.message || "Could not connect to Google. Please try again.",
+      })
       setIsGoogleLoading(false)
     }
   }
 
-  const handleMagicLinkSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (!email.trim() || !email.includes("@")) {
-      setStatusMessage({ type: "error", text: "Please enter a valid email address." })
+    setStatusMessage(null)
+
+    // Password Recovery Mode
+    if (isRecoveryMode) {
+      if (!password || password.length < 6) {
+        setStatusMessage({
+          type: "error",
+          text: "Password must be at least 6 characters long.",
+        })
+        return
+      }
+      if (password !== confirmPassword) {
+        setStatusMessage({
+          type: "error",
+          text: "Passwords do not match.",
+        })
+        return
+      }
+      setIsSubmitting(true)
+      const { error } = await updatePassword(password)
+      setIsSubmitting(false)
+      if (error) {
+        setStatusMessage({ type: "error", text: error.message })
+      } else {
+        setStatusMessage({
+          type: "success",
+          text: "Password updated successfully. You can now use your new password.",
+        })
+        setPassword("")
+        setConfirmPassword("")
+      }
       return
     }
 
-    setIsOtpLoading(true)
-    setStatusMessage(null)
-    const { error } = await signInWithOtp(email.trim())
-    setIsOtpLoading(false)
+    const trimmedEmail = email.trim()
+    if (!trimmedEmail || !trimmedEmail.includes("@")) {
+      setStatusMessage({
+        type: "error",
+        text: "Please enter a valid email address.",
+      })
+      return
+    }
 
+    if (mode === "forgot") {
+      setIsSubmitting(true)
+      const { error } = await resetPasswordForEmail(trimmedEmail)
+      setIsSubmitting(false)
+      if (error) {
+        setStatusMessage({ type: "error", text: error.message })
+      } else {
+        setStatusMessage({
+          type: "success",
+          text: "Password reset instructions sent. Please check your email.",
+        })
+      }
+      return
+    }
+
+    if (!password || password.length < 6) {
+      setStatusMessage({
+        type: "error",
+        text: "Password must be at least 6 characters long.",
+      })
+      return
+    }
+
+    if (mode === "signup") {
+      if (password !== confirmPassword) {
+        setStatusMessage({
+          type: "error",
+          text: "Passwords do not match.",
+        })
+        return
+      }
+      setIsSubmitting(true)
+      const { error, session } = await signUp(trimmedEmail, password)
+      setIsSubmitting(false)
+      if (error) {
+        setStatusMessage({ type: "error", text: error.message })
+      } else if (!session) {
+        setStatusMessage({
+          type: "success",
+          text: "Account created! Please check your email to confirm your account or sign in.",
+        })
+      }
+      return
+    }
+
+    // mode === "signin"
+    setIsSubmitting(true)
+    const { error } = await signInWithPassword(trimmedEmail, password)
+    setIsSubmitting(false)
     if (error) {
-      setStatusMessage({ type: "error", text: "Could not sign in. Please try again." })
-    } else {
-      setStatusMessage({ type: "success", text: "Check your email for the sign-in link." })
-      setEmail("")
+      setStatusMessage({ type: "error", text: error.message })
     }
   }
 
   return (
     <main className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-6 selection:bg-primary selection:text-primary-foreground">
-      <div className="w-full max-w-sm mx-auto space-y-8">
-        <header className="space-y-3 text-center">
+      <div className="w-full max-w-sm mx-auto space-y-6">
+        <header className="space-y-2 text-center">
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">
             Personal Memory
           </h1>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Your private place to capture things before you forget them.
+            {isRecoveryMode
+              ? "Set a new password for your account."
+              : mode === "forgot"
+              ? "Reset your password with your email address."
+              : mode === "signup"
+              ? "Create your private account to start capturing."
+              : "Your private place to capture things before you forget them."}
           </p>
         </header>
 
-        <div className="space-y-6">
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full h-10 font-medium justify-center"
-            onClick={handleGoogleSignIn}
-            disabled={isGoogleLoading || isOtpLoading}
-            aria-label="Continue with Google"
-          >
-            {isGoogleLoading ? "Connecting to Google..." : "Continue with Google"}
-          </Button>
+        <div className="space-y-5">
+          {!isRecoveryMode && (
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full h-10 font-medium justify-center"
+                onClick={handleGoogleSignIn}
+                disabled={isPending}
+                aria-label="Continue with Google"
+              >
+                {isGoogleLoading ? "Connecting to Google..." : "Continue with Google"}
+              </Button>
 
-          <div className="relative flex items-center justify-center">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-border" />
-            </div>
-            <span className="relative bg-background px-3 text-xs uppercase tracking-wider text-muted-foreground">
-              or
-            </span>
-          </div>
+              <div className="relative flex items-center justify-center">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-border" />
+                </div>
+                <span className="relative bg-background px-3 text-xs uppercase tracking-wider text-muted-foreground">
+                  or
+                </span>
+              </div>
+            </>
+          )}
 
-          <form onSubmit={handleMagicLinkSubmit} className="space-y-4">
-            <div className="space-y-1.5 text-left">
-              <label htmlFor="email" className="text-xs font-medium text-foreground">
-                Email address
-              </label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="name@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={isGoogleLoading || isOtpLoading}
-                required
-                className="h-10 text-sm"
-                autoComplete="email"
-              />
-            </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {!isRecoveryMode && (
+              <div className="space-y-1.5 text-left">
+                <label htmlFor="email" className="text-xs font-medium text-foreground">
+                  Email address
+                </label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="name@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isPending}
+                  required
+                  className="h-10 text-sm"
+                  autoComplete="email"
+                />
+              </div>
+            )}
+
+            {mode !== "forgot" && (
+              <div className="space-y-1.5 text-left">
+                <div className="flex items-center justify-between">
+                  <label htmlFor="password" className="text-xs font-medium text-foreground">
+                    {isRecoveryMode ? "New password" : "Password"}
+                  </label>
+                  {!isRecoveryMode && mode === "signin" && (
+                    <button
+                      type="button"
+                      onClick={() => handleModeChange("forgot")}
+                      className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      disabled={isPending}
+                    >
+                      Forgot password?
+                    </button>
+                  )}
+                </div>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isPending}
+                  required
+                  minLength={6}
+                  className="h-10 text-sm"
+                  autoComplete={isRecoveryMode || mode === "signup" ? "new-password" : "current-password"}
+                />
+              </div>
+            )}
+
+            {(isRecoveryMode || mode === "signup") && (
+              <div className="space-y-1.5 text-left">
+                <label htmlFor="confirmPassword" className="text-xs font-medium text-foreground">
+                  Confirm password
+                </label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  disabled={isPending}
+                  required
+                  minLength={6}
+                  className="h-10 text-sm"
+                  autoComplete="new-password"
+                />
+              </div>
+            )}
 
             <Button
               type="submit"
               variant="default"
               className="w-full h-10 font-medium justify-center"
-              disabled={isGoogleLoading || isOtpLoading || !email}
+              disabled={
+                isPending ||
+                (!isRecoveryMode && !email) ||
+                (mode !== "forgot" && !password)
+              }
             >
-              {isOtpLoading ? "Sending magic link..." : "Send me a magic link"}
+              {isSubmitting
+                ? "Processing..."
+                : isRecoveryMode
+                ? "Update password"
+                : mode === "forgot"
+                ? "Send reset instructions"
+                : mode === "signup"
+                ? "Create account"
+                : "Sign in"}
             </Button>
           </form>
 
@@ -111,6 +294,36 @@ export function AuthPage() {
               }`}
             >
               {statusMessage.text}
+            </div>
+          )}
+
+          {!isRecoveryMode && (
+            <div className="pt-2 text-center text-xs text-muted-foreground">
+              {mode === "signin" ? (
+                <span>
+                  Don&apos;t have an account?{" "}
+                  <button
+                    type="button"
+                    onClick={() => handleModeChange("signup")}
+                    className="font-medium text-foreground hover:underline"
+                    disabled={isPending}
+                  >
+                    Sign up
+                  </button>
+                </span>
+              ) : (
+                <span>
+                  Already have an account?{" "}
+                  <button
+                    type="button"
+                    onClick={() => handleModeChange("signin")}
+                    className="font-medium text-foreground hover:underline"
+                    disabled={isPending}
+                  >
+                    Sign in
+                  </button>
+                </span>
+              )}
             </div>
           )}
         </div>

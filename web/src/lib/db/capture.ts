@@ -47,7 +47,7 @@ export async function captureItem(
   // 2. Build local_item record preserving exact raw input
   const localItem: LocalItem = {
     id: itemId,
-    user_id: input.userId || "local-user",
+    user_id: input.userId || null,
     raw_input: input.rawInput,
     captured_at: now,
     created_at: now,

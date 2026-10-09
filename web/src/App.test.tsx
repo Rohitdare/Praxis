@@ -12,7 +12,8 @@ vi.mock("@/lib/supabase/client", () => {
           data: { subscription: { unsubscribe: vi.fn() } },
         }),
         signInWithOAuth: vi.fn(),
-        signInWithOtp: vi.fn(),
+        signInWithPassword: vi.fn(),
+        signUp: vi.fn(),
         signOut: vi.fn(),
       },
     },
@@ -26,6 +27,6 @@ describe("App Root", () => {
       expect(screen.getByRole("heading", { name: "Personal Memory" })).toBeInTheDocument()
     })
     expect(screen.getByRole("button", { name: "Continue with Google" })).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: "Send me a magic link" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Sign in" })).toBeInTheDocument()
   })
 })

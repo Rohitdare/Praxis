@@ -3,6 +3,15 @@ node_modules/
 dist/
 dist-ssr/
 *.local
+.vite/
+*.tsbuildinfo
+
+# Test & coverage outputs
+coverage/
+.coverage
+.coverage.*
+htmlcov/
+.nyc_output/
 
 # Python / FastAPI dependencies & virtualenvs
 __pycache__/
@@ -11,15 +20,16 @@ __pycache__/
 .venv/
 env/
 venv/
+virtual/
 .pytest_cache/
 .ruff_cache/
 
 # Environment files with sensitive credentials
 .env
-.env.production
-.env.local
+.env.*
 *.env
 !.env.example
+!.env.*.example
 
 # Supabase local temp files
 .branches/

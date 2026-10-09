@@ -1,22 +1,16 @@
-import * as React from "react"
 import { NavLink, Outlet, useNavigate } from "react-router-dom"
 import { Inbox, LogOut, PenLine, Settings } from "lucide-react"
 import { useAuth } from "@/lib/auth/auth-context"
 import { Button } from "@/components/ui/button"
+import { SyncIndicator } from "@/components/sync/sync-indicator"
 
 export function AppShell() {
-  const { signOut, user } = useAuth()
+  const { signOut } = useAuth()
   const navigate = useNavigate()
-  const [showSettingsNotice, setShowSettingsNotice] = React.useState(false)
 
   const handleSignOut = async () => {
     await signOut()
     navigate("/auth", { replace: true })
-  }
-
-  const handleSettingsClick = () => {
-    setShowSettingsNotice(true)
-    setTimeout(() => setShowSettingsNotice(false), 3000)
   }
 
   return (
@@ -62,16 +56,23 @@ export function AppShell() {
           </div>
 
           {/* Desktop Right Actions */}
-          <div className="hidden md:flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handleSettingsClick}
-              className="px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors inline-flex items-center gap-1.5"
+          <div className="hidden md:flex items-center gap-3">
+            <SyncIndicator />
+            <div className="h-4 w-px bg-border/60" />
+            <NavLink
+              to="/settings"
+              className={({ isActive }) =>
+                `px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors inline-flex items-center gap-1.5 ${
+                  isActive
+                    ? "bg-secondary text-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                }`
+              }
               aria-label="Settings"
             >
               <Settings className="size-3.5" />
               Settings
-            </button>
+            </NavLink>
             <Button
               variant="ghost"
               size="sm"
@@ -84,8 +85,9 @@ export function AppShell() {
             </Button>
           </div>
 
-          {/* Mobile Right: User Info / Quick Sign Out */}
-          <div className="flex md:hidden items-center">
+          {/* Mobile Right: Sync Indicator / Quick Sign Out */}
+          <div className="flex md:hidden items-center gap-1">
+            <SyncIndicator />
             <button
               type="button"
               onClick={handleSignOut}
@@ -97,18 +99,6 @@ export function AppShell() {
           </div>
         </div>
       </header>
-
-      {/* Ephemeral settings placeholder notice */}
-      {showSettingsNotice && (
-        <div
-          role="status"
-          aria-live="polite"
-          className="bg-secondary text-secondary-foreground text-xs text-center py-2 px-4 border-b border-border transition-all"
-        >
-          Settings will be configurable in a later phase. Logged in as{" "}
-          <span className="font-medium">{user?.email ?? "User"}</span>.
-        </div>
-      )}
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-4xl w-full mx-auto p-4 md:p-8 pb-20 md:pb-8">
@@ -144,15 +134,18 @@ export function AppShell() {
           <span>Inbox</span>
         </NavLink>
 
-        <button
-          type="button"
-          onClick={handleSettingsClick}
-          className="flex flex-col items-center justify-center min-h-[44px] min-w-[44px] text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-          aria-label="Settings placeholder"
+        <NavLink
+          to="/settings"
+          className={({ isActive }) =>
+            `flex flex-col items-center justify-center min-h-[44px] min-w-[44px] text-xs font-medium transition-colors ${
+              isActive ? "text-foreground font-semibold" : "text-muted-foreground hover:text-foreground"
+            }`
+          }
+          aria-label="Settings"
         >
           <Settings className="size-4 mb-0.5" />
           <span>Settings</span>
-        </button>
+        </NavLink>
       </nav>
     </div>
   )

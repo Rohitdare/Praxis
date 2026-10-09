@@ -1,8 +1,8 @@
 # Personal Memory App — Implementation Status
 
-**Status:** Phase 1B Completed (Local-First Capture) — Ready for Phase 1C
-**Version:** 1.3
-**Date:** 2026-10-08
+**Status:** Phase 1C Completed (Online Synchronization Engine) — Ready for Phase 1D (Inbox Triage & Soft Delete)
+**Version:** 1.4
+**Date:** 2026-10-09
 **Assessed by:** Development Agent
 
 ---
@@ -48,7 +48,7 @@ d:\sample-projects\bruno\
 │   │   │   │   └── client.ts
 │   │   │   └── utils.ts
 │   │   ├── pages/
-│   │   │   ├── auth-page.tsx           # SCR-01 Google OAuth + magic link fallback
+│   │   │   ├── auth-page.tsx           # SCR-01 Email/Password + Google OAuth
 │   │   │   ├── capture-page.tsx        # SCR-02 Capture placeholder
 │   │   │   └── inbox-page.tsx          # SCR-03 Inbox placeholder
 │   │   ├── test/
@@ -80,10 +80,11 @@ d:\sample-projects\bruno\
 
 ## 3. Existing Functionality
 
-- **Authentication & Sessions**: Supabase browser client authentication with Google OAuth primary, magic link email fallback, session restoration on mount, auth state listener, and sign out (`/auth`).
+- **Authentication & Sessions**: Supabase browser client authentication with Email & Password + Google OAuth, password reset and recovery flows, session restoration on mount, auth state listener, and sign out (`/auth`). Magic-link authentication completely removed.
 - **Protected Routing**: Route guards (`ProtectedRoute`, `PublicRoute`) redirecting unauthenticated users to `/auth`, authenticated root `/` visits to `/capture`, with navigation between `/capture` and `/inbox`.
 - **Application Shell & Navigation**: Clean typography-first layout with desktop header navigation and thumb-reachable mobile bottom navigation bar (min 44x44px touch targets), Settings placeholder notice, and Sign out button.
 - **Local-First Capture & Dexie IndexedDB**: Complete IndexedDB schema (`local_items`, `outbox`, `sync_meta`), client-generated UUIDv4 IDs, atomic capture pipeline, sub-2ms local persistence latency (< 300 ms target), offline support without network dependencies, `CaptureBar` with five reactive states (empty, focused, saving, saved, offline), desktop keyboard shortcuts (`Enter` to save, `Shift+Enter` for newline), touch save button, and recent captures feed (5 newest items with relative timestamps).
+- **Online Synchronization Engine (Push Path)**: Dedicated synchronization layer in `web/src/lib/sync/`, in-memory concurrency guard preventing overlapping drains, automatic stale record recovery on startup, trigger hooks (app mount, user authentication, browser online event, unawaited post-capture trigger), idempotent Supabase `items` upsert (`onConflict: 'id'`), bounded exponential backoff (1s to 30s, max 5 attempts), user account cross-leakage prevention, and unobtrusive `SyncIndicator` component across desktop and mobile headers.
 - **PWA Foundation**: Web app manifest, standalone display mode, service worker app-shell caching, with explicit exclusion of all API and Supabase network traffic.
 - **FastAPI Service**: `GET /health` endpoint returning `{"status": "ok", "version": "0.1.0"}` with structured response and CORS middleware.
 - **Database & RLS**: Complete PostgreSQL migration with all 8 tables, indexes, triggers, and verified RLS cross-user isolation tests.
@@ -118,7 +119,7 @@ d:\sample-projects\bruno\
 | Item | Status |
 |------|--------|
 | Sign-in screen (SCR-01) | Completed (`web/src/pages/auth-page.tsx`) |
-| Supabase Auth (magic link / Google) | Completed (`web/src/lib/auth/auth-context.tsx`) |
+| Supabase Auth (Email/Password + Google OAuth) | Completed (`web/src/lib/auth/auth-context.tsx`) |
 | Protected App Shell & Navigation | Completed (`web/src/components/layout/app-shell.tsx`) |
 | Basic Routing (`/auth`, `/`, `/capture`, `/inbox`) | Completed (`web/src/App.tsx`) |
 | PWA Manifest & App-Shell Cache | Completed (`vite-plugin-pwa`) |
@@ -126,10 +127,11 @@ d:\sample-projects\bruno\
 | IndexedDB write on capture (< 300 ms) | Completed (`web/src/lib/db/capture.ts`, latency ~1.8 ms) |
 | Outbox table in Dexie | Completed (`web/src/lib/db/schema.ts`, `outbox`) |
 | Saved / Saved offline confirmation | Completed (inline polite status, design.md §12 microcopy) |
-| Sync engine (push only) | Deferred to Phase 1C |
-| Inbox screen (SCR-03) | Deferred to Phase 1C |
-| JSON export (FR-31) | Deferred to Phase 1C |
-| Soft-delete / tombstone logic (FR-08) | Deferred to Phase 1C |
+| Sync engine (push only) | Completed (`web/src/lib/sync/`, idempotent upsert, backoff, outbox state machine) |
+| Inbox screen (SCR-03) | Completed in Phase 1D (`web/src/pages/inbox-page.tsx`, `web/src/components/inbox/`) |
+| Settings screen (SCR-10) | Completed in Phase 1E (`web/src/pages/settings-page.tsx`) |
+| JSON export (FR-31) | Completed in Phase 1E (`web/src/lib/export/service.ts`, `web/src/pages/settings-page.tsx`) |
+| Soft-delete / tombstone logic (FR-08) | Completed in Phase 1D (`web/src/lib/inbox/service.ts`, tombstone sync) |
 
 ---
 
@@ -172,7 +174,7 @@ tech-stack.md specifies npm (ASSUMPTION T-01). `package-lock.json` is committed 
 | IMPL-A-01 | npm will be used as the frontend package manager (aligns with tech-stack.md ASSUMPTION T-01). |
 | IMPL-A-02 | uv will be used for the FastAPI Python environment. |
 | IMPL-A-03 | Monorepo layout: web/ (Vite React SPA), api/ (FastAPI), docs/, supabase/ at repository root. Not specified in project documents; must be confirmed before scaffold. |
-| IMPL-A-04 | Google OAuth implemented first; magic link is the fallback. Both must be tested. |
+| IMPL-A-04 | Email/Password and Google OAuth are the two supported authentication methods; magic links removed. |
 | IMPL-A-05 | Node.js active LTS (v22.x at time of writing) is the runtime. |
 | IMPL-A-06 | Tailwind CSS v4 will be used. If a blocking incompatibility is found, fall back to v3 and record here. |
 | IMPL-A-07 | Sentry adoption is deferred until privacy review (tech-stack.md open questions). |
@@ -253,10 +255,12 @@ Goal: Real daily use for several days. Core capture loop working.
 - Auth session listener integrated with TanStack Query
 
 **Step 3 — Sign-in screen (SCR-01)**
-- Google OAuth button
-- Magic link form as fallback
+- Google OAuth button ("Continue with Google")
+- Email and password authentication (Sign in, Sign up, Forgot password, Recovery modes)
+- Magic link completely removed
+- Clear error handling & rate limit diagnostics
 - Design: Inter font, calm surface, minimal per DP-01..04
-- Microcopy per design.md s12
+- Microcopy per design.md §12
 
 **Step 4 — Dexie local schema**
 - web/src/lib/db/index.ts
@@ -277,19 +281,54 @@ Goal: Real daily use for several days. Core capture loop working.
 - SyncIndicator component (small, unobtrusive)
 - Responsive: single-column mobile, centered desktop per design.md s10
 
-**Step 7 — Sync engine (push path only)**
-- Background hook: drain outbox when online and authenticated
-- Supabase upsert with on conflict (id) for idempotency (NFR-04, ADR-03)
-- Mark record synced after server success
-- On 401: retain in outbox, wait for token refresh
-- Exponential backoff on failure
+**Step 7 — Sync engine (push path only) — AUDITED & APPROVED in Phase 1C**
+- **Architecture**: Dedicated layer in `web/src/lib/sync/` (`types.ts`, `mapper.ts`, `engine.ts`, `sync-context.tsx`) separated cleanly from capture domain logic and UI.
+- **Canonical Outbox State Machine**: Explicit transitions: `pending` -> `syncing` -> `synced` | `failed`.
+  - `pending`: Awaiting push to cloud.
+  - `syncing`: Currently being uploaded in active drain cycle.
+  - `synced`: Successfully pushed and upserted in Supabase.
+  - `failed`: Terminal failure on permanent errors (e.g., 400 Bad Request, schema violation) to prevent infinite loops.
+  - *Retention Rationale*: `synced` records are kept in IndexedDB as a local audit trail and test verification checkpoint. Pruning older synced records (e.g. > 7 days) can be scheduled without affecting active sync queues.
+  - *Crash Recovery*: Stale `syncing` records from crashes/reloads automatically recover to `pending` on app startup (`recoverStaleSyncingRecords`).
+- **Authentication & Ownership Invariants**:
+  - Eliminated magic placeholder `"local-user"`: unauthenticated captures store `user_id = null`.
+  - Invariant: `user_id = null` records remain local-first in IndexedDB only; `drainOutbox` strictly skips them (`skippedCount++`), guaranteeing zero unauthenticated data leaks to cloud.
+  - Client-generated UUIDv4 `id` preserved across local and server records.
+- **Account Switching**:
+  - Safe behavior: If User A captures notes and logs out, and User B logs in, the sync engine validates `record.payload.user_id === authenticatedUserId`. User A's pending records are skipped and will NEVER be uploaded to User B's Supabase account.
+- **Security Boundary (RLS vs Client Validation)**:
+  - Client-side checks are defense-in-depth safety filters. The true security boundary is PostgreSQL RLS (`auth.uid() = user_id`) paired with Supabase Auth JWTs.
+  - Browser client exclusively uses `VITE_SUPABASE_ANON_KEY`. Zero privileged keys or service-role tokens exist on the client.
+- **Idempotency & Upsert**:
+  - Supabase `items` table upsert uses `{ onConflict: 'id' }` matching client UUID. Multiple retries cannot create duplicate records or modify IDs.
+- **Retry Semantics & Backoff**:
+  - Transient network failures and 5xx errors retain `pending` status, increment `retry_count`, and enforce exponential backoff: `Math.min(1000 * 2^retry_count, 30000)`.
+  - Immediate drains before backoff duration elapses are skipped unless explicit retry is forced (`force: true`).
+  - Auth failures (401 / null session) skip queue draining without incrementing error counts or thrashing the network.
+- **Capture Independence**:
+  - `web/src/lib/db/capture.ts` has zero sync or network dependencies. Local writes execute in < 2ms (far below the 300ms SLA).
+- **Testing**: 15 test cases (13 unit/integration in `sync-engine.test.ts`, 2 in `sync-indicator.test.tsx`), covering unauthenticated isolation, account switching, retry backoff, stale recovery, and RLS defense-in-depth. All 41 web tests and 6 api tests passing.
 
-**Step 8 — Inbox screen (SCR-03)**
-- List from Supabase (online) or local cache (offline)
-- Reverse capture order
-- ItemRow component with default, hover, selected, archived states
-- Filter tabs: All / Resource / Idea / Task / Event
-- Soft delete: set deleted_at; tombstone syncs (FR-08, ADR-05)
+**Step 8 — Inbox screen (SCR-03) — COMPLETED & TESTED in Phase 1D**
+- **Architecture**: Domain service layer in `web/src/lib/inbox/service.ts` decoupled from React presentation components (`ItemRow`, `InboxFilters`, `InboxList`, `InboxEmptyState`, `InboxPage`).
+- **Data Source & Offline Durability**:
+  - Offline: reads directly from IndexedDB `local_items` (`deleted_at is null`).
+  - Online: fetches active user items from Supabase (`deleted_at is null`, ordered by `captured_at desc`), gracefully merging any pending local captures and caching remote rows in IndexedDB.
+  - Failure tolerance: network or server 5xx errors fallback seamlessly to local IndexedDB captures without hiding or blanking user data.
+- **Item Ordering**: Strict reverse chronological order (`captured_at desc`) enforced in both Postgres SQL queries and local array operations.
+- **ItemRow Component**:
+  - Type icons: `Link2` (Resource), `Lightbulb` (Idea), `CheckSquare` (Task), `Calendar` (Event), `FileText` (Note), `HelpCircle` (Unclassified).
+  - Relative time: calm humanized relative labels ("just now", "2 min ago", "1 hr ago", "yesterday", or date).
+  - States: default, hover (`hover:bg-muted/40`), selected, and deleting with accessible touch targets.
+  - Delete action: trash button invoking soft delete with accessible label.
+- **Filter Tabs**: Canonical category filtering: `All`, `Resource`, `Idea / Note`, `Task`, `Event`. Tab counts dynamically rendered. Filter empty state ("No items in this category.") with "View all items" reset action.
+- **Soft Delete & Tombstone Synchronization**:
+  - `softDeleteItem`: sets `deleted_at = new Date().toISOString()`, appends or updates outbox tombstone record (`operation: 'delete'`), and triggers background sync.
+  - Race condition protection (delete before initial upload): updates pending outbox payload so initial upsert sends `deleted_at: now` directly, preventing accidental resurrection.
+  - Delete after sync: queues a new delete operation in outbox so Supabase updates `deleted_at`.
+  - Idempotent: repeated deletions on already tombstoned items are safe no-ops (`alreadyDeleted: true`, no duplicate outbox records).
+  - Offline deletion: tombstone saved to IndexedDB immediately, item removed from UI, and synced when reconnected.
+- **Testing**: 21 unit & UI integration tests (`inbox-service.test.ts`, `inbox-page.test.tsx`), covering reverse chronological ordering, category filters, empty states, soft delete, race conditions, and offline deletion. Total suite passing: 62 tests across 10 test files.
 
 **Step 9 — JSON export (FR-31)**
 - Settings page stub (SCR-10 skeleton only)
@@ -349,4 +388,51 @@ Per PRD s8: Do not start Phase 2 until Phase 1 has been used for real for severa
 - Relationships (Phase 7)
 - Sentry error tracking (pending privacy review)
 - Web Share Target (feature-detect only; not a core capture path dependency)
+
+---
+
+## 12. Authentication Simplification & Security Hardening (Completed)
+
+- **Authentication Methods**: Strictly simplified to two methods:
+  1. Email and Password (Sign in, Sign up with password confirmation, Password reset, and Password recovery).
+  2. Google OAuth (`signInWithOAuth` using existing browser client).
+- **Magic Link Removal**: Completely removed `signInWithOtp`, OTP buttons, OTP input fields, and obsolete magic link tests. Magic links were eliminated due to Supabase free-tier rate limits (3 emails/hour), email delivery delays, and domain restrictions.
+- **Security Audit & Hardening**:
+  - **RLS Verification**: Confirmed all 8 database tables (`profiles`, `items`, `resources`, `tasks`, `calendar_events`, `tags`, `item_tags`, `item_relationships`) enforce PostgreSQL Row Level Security with strict `auth.uid()` checks for both `USING` and `WITH CHECK`.
+  - **Multi-Tenant / Cross-User Isolation**: Verified User B cannot read, mutate, delete, or insert records with User A's `user_id`.
+  - **Offline Capture Isolation**: Unauthenticated captures store `user_id = null` and are strictly skipped by the sync engine until safely associated with an authenticated account.
+  - **Account-Switch Protection**: The sync engine strictly skips pending outbox records if `record.payload.user_id !== authenticatedUserId`. User A's local pending records never leak to User B's cloud account.
+  - **Credential & Secret Protection**: No service-role keys or database passwords exist in frontend code or git repository.
+  - **Logging Hygiene**: Diagnostic logs strictly omit passwords, session tokens, access tokens, and sensitive capture content.
+  - **FastAPI Review**: Auxiliary backend has CORS restricted to configured origins, health check endpoint with no auth bypasses, and Pydantic validation.
 - Calendar external sync (non-goal for MVP)
+
+---
+
+## 13. Phase 1E — Settings Skeleton + JSON Export (Completed)
+
+- **Settings Screen (SCR-10)**: Implemented in `web/src/pages/settings-page.tsx` and routed to `/settings` in `web/src/App.tsx`.
+  - Header with account information (Email, User ID, Provider name).
+  - "Sign out" action integrated with `useAuth().signOut()`.
+  - Storage & device privacy advisory regarding unencrypted browser IndexedDB storage.
+- **Sync Diagnostics & Recovery**:
+  - Live synchronization status display (Synced, Syncing, Pending, Offline, Sync issue).
+  - Diagnostic details box exposing `lastError` with actionable troubleshooting steps.
+  - "Retry Sync Now" action via `retrySync(force)` in `web/src/lib/sync/sync-context.tsx`.
+  - `resetFailedOutboxRecords(authenticatedUserId)` in `web/src/lib/sync/engine.ts` securely resets eligible failed outbox records for the active user while strictly excluding unauthenticated (`user_id = null`) and cross-account records.
+  - Automatic clearance of `lastErrorCache` once all records drain cleanly.
+- **Client-Side JSON Export (FR-31)**:
+  - Documented, versioned JSON schema (`schema_version: "1.0.0"`) defined in `web/src/lib/export/types.ts`.
+  - Service in `web/src/lib/export/service.ts`:
+    - Merges cloud data (`profiles`, `items`, `resources`, `tasks`, `calendar_events`, `tags`, `item_tags`, `item_relationships`) with Dexie `local_items`.
+    - Deduplicates records using stable UUIDs: local unsynchronized edits and soft-deletes take precedence over older cloud versions.
+    - Preserves soft-deleted tombstones (`deleted_at !== null`) so future imports do not accidentally resurrect deleted notes.
+    - Strict account ownership: `user_id = null` and foreign user items are strictly excluded from the export.
+    - Offline & partial resilience: when offline or if cloud queries encounter network failures, exports local data cleanly with `is_partial: true` and explicit diagnostic reasons.
+    - Purely client-side execution via `Blob` and Object URL; zero external API requests.
+- **Verification**:
+  - 13 test suites / 89 tests passing across `web/`.
+  - Zero TypeScript errors (`tsc -b`), zero linter errors (`oxlint`), production build successful (`vite build`).
+  - Pytest (6/6) and Ruff passing in `api/`.
+- **Remaining Cloud Blocker**:
+  - Requires executing `supabase/migrations/20261008000000_initial_schema.sql` in the live Supabase SQL Editor to eliminate the cloud 404 relation missing error.

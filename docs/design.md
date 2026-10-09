@@ -270,9 +270,14 @@ things before you forget them.
 
 [ Continue with Google ]
 
-or
+----------------- or -----------------
 
-[ Send me a magic link ]
+[ Email address                     ]
+[ Password                          ]
+[ Sign in ]
+
+Don't have an account? Sign up
+Forgot password?
 ```
 
 ## 6. Capture behavior

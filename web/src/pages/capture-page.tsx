@@ -2,6 +2,7 @@ import * as React from "react"
 import { CaptureBar } from "@/components/capture/capture-bar"
 import { RecentCaptures } from "@/components/capture/recent-captures"
 import { getRecentCaptures } from "@/lib/db/capture"
+import { triggerBackgroundSync } from "@/lib/sync/engine"
 import type { LocalItem } from "@/lib/db/schema"
 
 export function CapturePage() {
@@ -44,6 +45,8 @@ export function CapturePage() {
   const handleCaptureSuccess = React.useCallback(() => {
     // Immediately reload the recent captures from IndexedDB
     loadRecentCaptures()
+    // Schedule background synchronization without blocking the capture workflow
+    triggerBackgroundSync()
   }, [loadRecentCaptures])
 
   return (
