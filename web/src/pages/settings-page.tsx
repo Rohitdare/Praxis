@@ -87,8 +87,8 @@ export function SettingsPage() {
   return (
     <div className="w-full max-w-2xl mx-auto py-6 md:py-10 space-y-8">
       {/* Page Header */}
-      <header className="space-y-1">
-        <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-foreground">
+      <header className="space-y-1.5 pb-2 border-b border-border/50">
+        <h1 className="font-heading font-extrabold text-2xl md:text-3xl tracking-tight text-foreground">
           Settings
         </h1>
         <p className="text-xs md:text-sm text-muted-foreground">
@@ -97,8 +97,8 @@ export function SettingsPage() {
       </header>
 
       {/* Account Section */}
-      <section className="p-5 rounded-lg border border-border bg-card space-y-4">
-        <h2 className="text-sm font-semibold tracking-tight text-foreground flex items-center gap-2">
+      <section className="p-5 md:p-6 rounded-xl border border-border/80 bg-card/60 space-y-4 shadow-2xs">
+        <h2 className="font-heading font-bold text-sm tracking-tight text-foreground flex items-center gap-2">
           Account
         </h2>
 
@@ -127,7 +127,7 @@ export function SettingsPage() {
             variant="outline"
             size="sm"
             onClick={handleSignOut}
-            className="text-xs inline-flex items-center gap-1.5"
+            className="text-xs inline-flex items-center gap-1.5 rounded-lg shadow-2xs hover:shadow-xs"
             aria-label="Sign out"
           >
             <LogOut className="size-3.5" />
@@ -137,9 +137,9 @@ export function SettingsPage() {
       </section>
 
       {/* Synchronization Diagnostics Section */}
-      <section className="p-5 rounded-lg border border-border bg-card space-y-4">
+      <section className="p-5 md:p-6 rounded-xl border border-border/80 bg-card/60 space-y-4 shadow-2xs">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold tracking-tight text-foreground">
+          <h2 className="font-heading font-bold text-sm tracking-tight text-foreground">
             Synchronization
           </h2>
           {/* Status Badge */}
@@ -178,14 +178,14 @@ export function SettingsPage() {
         </div>
 
         <div className="grid grid-cols-2 gap-3 text-xs">
-          <div className="p-3 rounded-md bg-muted/40 border border-border/40">
+          <div className="p-3 rounded-lg bg-muted/40 border border-border/50">
             <span className="text-muted-foreground block text-[11px]">Pending items</span>
-            <span className="font-semibold text-foreground text-sm">
+            <span className="font-semibold text-foreground text-sm tabular-nums">
               {syncState.pendingCount}
             </span>
           </div>
 
-          <div className="p-3 rounded-md bg-muted/40 border border-border/40">
+          <div className="p-3 rounded-lg bg-muted/40 border border-border/50">
             <span className="text-muted-foreground block text-[11px]">Last synced</span>
             <span className="font-medium text-foreground text-xs">
               {syncState.lastSyncedAt
@@ -202,7 +202,7 @@ export function SettingsPage() {
         {(syncState.status === "error" || syncState.lastError) && (
           <div
             role="alert"
-            className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs space-y-1.5 text-amber-700 dark:text-amber-300"
+            className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs space-y-1.5 text-amber-700 dark:text-amber-300"
           >
             <div className="flex items-center gap-1.5 font-medium">
               <AlertTriangle className="size-3.5 shrink-0" />
@@ -222,7 +222,7 @@ export function SettingsPage() {
         {retryFeedback && (
           <div
             role="status"
-            className="p-2.5 rounded-md bg-secondary text-secondary-foreground text-xs leading-relaxed"
+            className="p-3 rounded-lg bg-secondary text-secondary-foreground text-xs leading-relaxed border border-border/60"
           >
             {retryFeedback}
           </div>
@@ -235,7 +235,7 @@ export function SettingsPage() {
             size="sm"
             onClick={handleRetrySync}
             disabled={isRetryingSync || (typeof navigator !== "undefined" && !navigator.onLine)}
-            className="text-xs inline-flex items-center gap-1.5"
+            className="text-xs inline-flex items-center gap-1.5 rounded-lg shadow-2xs hover:shadow-xs"
             aria-label="Retry sync now"
           >
             <RefreshCw className={`size-3.5 ${isRetryingSync ? "animate-spin" : ""}`} />
@@ -245,9 +245,9 @@ export function SettingsPage() {
       </section>
 
       {/* JSON Data Export Section (FR-31) */}
-      <section className="p-5 rounded-lg border border-border bg-card space-y-4">
+      <section className="p-5 md:p-6 rounded-xl border border-border/80 bg-card/60 space-y-4 shadow-2xs">
         <header className="space-y-1">
-          <h2 className="text-sm font-semibold tracking-tight text-foreground">
+          <h2 className="font-heading font-bold text-sm tracking-tight text-foreground">
             Data Portability & Export
           </h2>
           <p className="text-xs text-muted-foreground leading-relaxed">
@@ -264,7 +264,7 @@ export function SettingsPage() {
             size="sm"
             onClick={handleExport}
             disabled={isExporting}
-            className="text-xs inline-flex items-center gap-1.5"
+            className="text-xs inline-flex items-center gap-1.5 rounded-lg shadow-2xs hover:shadow-xs font-medium"
             aria-label="Export all data as JSON"
           >
             {isExporting ? (
@@ -279,14 +279,14 @@ export function SettingsPage() {
         {exportError && (
           <div
             role="alert"
-            className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-xs"
+            className="p-3.5 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs"
           >
             {exportError}
           </div>
         )}
 
         {exportResult && (
-          <div className="p-3.5 rounded-lg border border-border bg-muted/30 space-y-2 text-xs">
+          <div className="p-4 rounded-xl border border-border/80 bg-card/50 space-y-2.5 text-xs shadow-2xs">
             <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
               <CheckCircle2 className="size-4 shrink-0" />
               <span>Export generated successfully</span>
@@ -305,7 +305,7 @@ export function SettingsPage() {
             </div>
 
             {exportResult.payload.metadata.is_partial && (
-              <div className="mt-2 p-2.5 rounded bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-700 dark:text-amber-300 space-y-1">
+              <div className="mt-2 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-700 dark:text-amber-300 space-y-1">
                 <span className="font-semibold block">Notice: Incomplete Export</span>
                 {exportResult.payload.metadata.partial_reasons.map((reason, idx) => (
                   <p key={idx}>• {reason}</p>
@@ -317,7 +317,7 @@ export function SettingsPage() {
       </section>
 
       {/* Security & Local Storage Advisory */}
-      <section className="p-4 rounded-lg border border-border/60 bg-muted/20 text-xs text-muted-foreground space-y-1.5">
+      <section className="p-4.5 rounded-xl border border-border/70 bg-card/40 text-xs text-muted-foreground space-y-1.5 shadow-2xs">
         <div className="flex items-center gap-1.5 font-medium text-foreground">
           <Shield className="size-3.5 text-muted-foreground" />
           <span>Local Storage & Device Security</span>

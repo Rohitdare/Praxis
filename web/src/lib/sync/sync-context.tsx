@@ -1,6 +1,8 @@
 import * as React from "react"
 import { useAuth } from "@/lib/auth/auth-context"
+import { db } from "@/lib/db/index"
 import {
+  clearLastError,
   drainOutbox,
   getSyncEngineState,
   recoverStaleSyncingRecords,
@@ -41,8 +43,9 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
 
     async function initializeSync() {
       try {
+        clearLastError()
         await recoverStaleSyncingRecords()
-        const state = await getSyncEngineState()
+        const state = await getSyncEngineState(db, user?.id)
         if (!ignore) {
           setSyncState(state)
         }
@@ -69,12 +72,12 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
       if (user) {
         triggerBackgroundSync()
       } else {
-        void getSyncEngineState().then(setSyncState)
+        void getSyncEngineState(db, null).then(setSyncState)
       }
     }
 
     const handleOffline = () => {
-      void getSyncEngineState().then(setSyncState)
+      void getSyncEngineState(db, user ? user.id : null).then(setSyncState)
     }
 
     window.addEventListener("online", handleOnline)
@@ -92,6 +95,7 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
 
   const retrySync = React.useCallback(
     async (force = true) => {
+      clearLastError()
       if (user?.id) {
         await resetFailedOutboxRecords(user.id)
       }

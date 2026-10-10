@@ -57,7 +57,18 @@ export async function gatherExportData(
     .filter((item) => item.user_id === userId)
     .toArray()
 
-  // 3. Fetch Cloud Records from Supabase (if online and configured)
+  // 3. Check for any failed local outbox records belonging to this user
+  const failedUserOutboxCount = await database.outbox
+    .filter((r) => r.status === "failed" && r.payload.user_id === userId)
+    .count()
+  if (failedUserOutboxCount > 0) {
+    isPartial = true
+    partialReasons.push(
+      `${failedUserOutboxCount} local record(s) failed to sync to the cloud and remain in outbox.`
+    )
+  }
+
+  // 4. Fetch Cloud Records from Supabase (if online and configured)
   let cloudProfile: Database["public"]["Tables"]["profiles"]["Row"] | null = null
   let cloudItems: Database["public"]["Tables"]["items"]["Row"][] = []
   let cloudResources: Database["public"]["Tables"]["resources"]["Row"][] = []
@@ -74,106 +85,90 @@ export async function gatherExportData(
     isPartial = true
     partialReasons.push("Supabase is not configured; exported local database only.")
   } else {
+    // Isolated helper to safely query a single cloud table without aborting other tables
+    const safeQueryTable = async <T>(
+      tableName: string,
+      queryFn: () => PromiseLike<{ data: T[] | null; error: { message: string } | null }>
+    ): Promise<T[]> => {
+      try {
+        const { data, error } = await queryFn()
+        if (error) {
+          isPartial = true
+          partialReasons.push(`Failed to fetch cloud ${tableName}: ${error.message}`)
+          return []
+        }
+        return data || []
+      } catch (err) {
+        isPartial = true
+        partialReasons.push(`Network exception fetching cloud ${tableName}: ${String(err)}`)
+        return []
+      }
+    }
+
     try {
-      // Profile
-      const { data: profileData, error: profileErr } = await client
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .maybeSingle()
-      if (profileErr) {
-        partialReasons.push(`Failed to fetch cloud profile: ${profileErr.message}`)
+      // Fetch profile safely
+      try {
+        const { data: profileData, error: profileErr } = await client
+          .from("profiles")
+          .select("*")
+          .eq("id", userId)
+          .maybeSingle()
+        if (profileErr) {
+          isPartial = true
+          partialReasons.push(`Failed to fetch cloud profile: ${profileErr.message}`)
+        } else {
+          cloudProfile = profileData
+        }
+      } catch (err) {
         isPartial = true
-      } else {
-        cloudProfile = profileData
+        partialReasons.push(`Network exception fetching cloud profile: ${String(err)}`)
       }
 
-      // Items
-      const { data: itemsData, error: itemsErr } = await client
-        .from("items")
-        .select("*")
-        .eq("user_id", userId)
-      if (itemsErr) {
-        partialReasons.push(`Failed to fetch cloud items: ${itemsErr.message}`)
-        isPartial = true
-      } else if (itemsData) {
-        cloudItems = itemsData
-      }
+      // Concurrently query all data tables with per-table isolation
+      const [
+        itemsRes,
+        resourcesRes,
+        tasksRes,
+        calendarRes,
+        tagsRes,
+        itemTagsRes,
+        itemRelRes,
+      ] = await Promise.all([
+        safeQueryTable<Database["public"]["Tables"]["items"]["Row"]>("items", () =>
+          client.from("items").select("*").eq("user_id", userId)
+        ),
+        safeQueryTable<Database["public"]["Tables"]["resources"]["Row"]>("resources", () =>
+          client.from("resources").select("*").eq("user_id", userId)
+        ),
+        safeQueryTable<Database["public"]["Tables"]["tasks"]["Row"]>("tasks", () =>
+          client.from("tasks").select("*").eq("user_id", userId)
+        ),
+        safeQueryTable<Database["public"]["Tables"]["calendar_events"]["Row"]>(
+          "calendar_events",
+          () => client.from("calendar_events").select("*").eq("user_id", userId)
+        ),
+        safeQueryTable<Database["public"]["Tables"]["tags"]["Row"]>("tags", () =>
+          client.from("tags").select("*").eq("user_id", userId)
+        ),
+        safeQueryTable<Database["public"]["Tables"]["item_tags"]["Row"]>("item_tags", () =>
+          client.from("item_tags").select("*").eq("user_id", userId)
+        ),
+        safeQueryTable<Database["public"]["Tables"]["item_relationships"]["Row"]>(
+          "item_relationships",
+          () => client.from("item_relationships").select("*").eq("user_id", userId)
+        ),
+      ])
 
-      // Resources
-      const { data: resData, error: resErr } = await client
-        .from("resources")
-        .select("*")
-        .eq("user_id", userId)
-      if (resErr) {
-        partialReasons.push(`Failed to fetch cloud resources: ${resErr.message}`)
-        isPartial = true
-      } else if (resData) {
-        cloudResources = resData
-      }
-
-      // Tasks
-      const { data: tasksData, error: tasksErr } = await client
-        .from("tasks")
-        .select("*")
-        .eq("user_id", userId)
-      if (tasksErr) {
-        partialReasons.push(`Failed to fetch cloud tasks: ${tasksErr.message}`)
-        isPartial = true
-      } else if (tasksData) {
-        cloudTasks = tasksData
-      }
-
-      // Calendar Events
-      const { data: eventsData, error: eventsErr } = await client
-        .from("calendar_events")
-        .select("*")
-        .eq("user_id", userId)
-      if (eventsErr) {
-        partialReasons.push(`Failed to fetch cloud calendar events: ${eventsErr.message}`)
-        isPartial = true
-      } else if (eventsData) {
-        cloudCalendarEvents = eventsData
-      }
-
-      // Tags
-      const { data: tagsData, error: tagsErr } = await client
-        .from("tags")
-        .select("*")
-        .eq("user_id", userId)
-      if (tagsErr) {
-        partialReasons.push(`Failed to fetch cloud tags: ${tagsErr.message}`)
-        isPartial = true
-      } else if (tagsData) {
-        cloudTags = tagsData
-      }
-
-      // Item Tags
-      const { data: itemTagsData, error: itemTagsErr } = await client
-        .from("item_tags")
-        .select("*")
-        .eq("user_id", userId)
-      if (itemTagsErr) {
-        partialReasons.push(`Failed to fetch cloud item tags: ${itemTagsErr.message}`)
-        isPartial = true
-      } else if (itemTagsData) {
-        cloudItemTags = itemTagsData
-      }
-
-      // Item Relationships
-      const { data: relData, error: relErr } = await client
-        .from("item_relationships")
-        .select("*")
-        .eq("user_id", userId)
-      if (relErr) {
-        partialReasons.push(`Failed to fetch cloud item relationships: ${relErr.message}`)
-        isPartial = true
-      } else if (relData) {
-        cloudItemRelationships = relData
-      }
+      cloudItems = itemsRes
+      cloudResources = resourcesRes
+      cloudTasks = tasksRes
+      cloudCalendarEvents = calendarRes
+      cloudTags = tagsRes
+      cloudItemTags = itemTagsRes
+      cloudItemRelationships = itemRelRes
     } catch (err) {
       isPartial = true
-      partialReasons.push(`Unexpected network error fetching cloud data: ${String(err)}`)
+      partialReasons.push(`Unexpected error coordinating cloud queries: ${String(err)}`)
     }
   }
 

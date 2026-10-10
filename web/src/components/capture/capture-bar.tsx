@@ -1,7 +1,7 @@
 import * as React from "react"
-import { Check, WifiOff } from "lucide-react"
+import { Check, Sparkles, WifiOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { captureItem, type CaptureResult } from "@/lib/db/capture"
+import { captureItem, classifyInputLocally, type CaptureResult } from "@/lib/db/capture"
 import { useAuth } from "@/lib/auth/auth-context"
 
 export interface CaptureBarProps {
@@ -71,13 +71,23 @@ export function CaptureBar({ onCaptureSuccess }: CaptureBarProps) {
 
   const hasContent = input.trim().length > 0
 
+  // Deterministic local smart capture suggestion preview
+  const smartClassification = React.useMemo(() => {
+    if (!hasContent) return null
+    const res = classifyInputLocally(input)
+    if (res.type === "unclassified" && (!res.suggestedTags || res.suggestedTags.length === 0)) {
+      return null
+    }
+    return res
+  }, [input, hasContent])
+
   return (
     <div className="w-full space-y-3">
       <form onSubmit={handleSubmit} className="w-full">
         <div
-          className={`relative rounded-xl border bg-card transition-all duration-150 ${
+          className={`relative rounded-xl border bg-card/80 transition-all duration-150 ${
             isFocused
-              ? "border-foreground/30 ring-2 ring-foreground/5 shadow-xs"
+              ? "border-foreground/35 ring-2 ring-foreground/5 shadow-xs"
               : "border-border hover:border-foreground/20"
           }`}
         >
@@ -95,21 +105,37 @@ export function CaptureBar({ onCaptureSuccess }: CaptureBarProps) {
             onKeyDown={handleKeyDown}
             disabled={isSaving}
             placeholder="Paste a link, idea, task, event or anything..."
-            className="w-full resize-none bg-transparent px-4 py-3.5 text-base md:text-sm text-foreground placeholder:text-muted-foreground outline-none leading-relaxed"
+            className="w-full resize-none bg-transparent px-4 py-3.5 text-base md:text-sm text-foreground placeholder:text-muted-foreground outline-none leading-relaxed font-sans"
             aria-label="Capture input"
           />
 
-          <div className="flex items-center justify-between px-3 pb-2.5 pt-1 border-t border-border/50">
-            <span className="text-[11px] text-muted-foreground hidden md:inline">
-              Press <kbd className="font-mono bg-muted px-1 py-0.5 rounded text-[10px]">Enter</kbd> to save, <kbd className="font-mono bg-muted px-1 py-0.5 rounded text-[10px]">Shift+Enter</kbd> for new line
-            </span>
-            <span className="md:hidden" />
+          <div className="flex items-center justify-between px-3 pb-2.5 pt-1.5 border-t border-border/50 gap-2">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              {smartClassification ? (
+                <div
+                  className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-secondary/80 border border-border/60 text-[11px] font-medium text-foreground/80 animate-in fade-in duration-150"
+                  title="Smart capture suggestion"
+                >
+                  <Sparkles className="size-3 text-muted-foreground" aria-hidden="true" />
+                  <span className="capitalize">{smartClassification.type}</span>
+                  {smartClassification.suggestedTags?.map((tag) => (
+                    <span key={tag} className="text-muted-foreground font-normal">
+                      · {tag}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <span className="text-[11px] text-muted-foreground hidden md:inline">
+                  Press <kbd className="font-mono bg-muted/80 px-1 py-0.5 rounded text-[10px] text-foreground/70">Enter</kbd> to save, <kbd className="font-mono bg-muted/80 px-1 py-0.5 rounded text-[10px] text-foreground/70">Shift+Enter</kbd> for new line
+                </span>
+              )}
+            </div>
 
             <Button
               type="submit"
               size="sm"
               disabled={!hasContent || isSaving}
-              className="min-h-[36px] min-w-[72px] font-medium transition-all"
+              className="min-h-[36px] min-w-[72px] font-medium transition-all shadow-2xs hover:shadow-xs"
             >
               {isSaving ? "Saving..." : "Save"}
             </Button>

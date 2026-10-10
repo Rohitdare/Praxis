@@ -8,6 +8,10 @@ import { AuthPage } from "@/pages/auth-page"
 import { CapturePage } from "@/pages/capture-page"
 import { InboxPage } from "@/pages/inbox-page"
 import { SettingsPage } from "@/pages/settings-page"
+import { ItemDetailPage } from "@/pages/item-detail-page"
+
+import { NotesPage } from "@/pages/notes-page"
+import { CalendarPage } from "@/pages/calendar-page"
 
 export function AppRoutes() {
   return (
@@ -23,6 +27,9 @@ export function AppRoutes() {
           <Route path="/" element={<Navigate to="/capture" replace />} />
           <Route path="/capture" element={<CapturePage />} />
           <Route path="/inbox" element={<InboxPage />} />
+          <Route path="/notes" element={<NotesPage />} />
+          <Route path="/calendar" element={<CalendarPage />} />
+          <Route path="/items/:id" element={<ItemDetailPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Route>

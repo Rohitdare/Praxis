@@ -46,17 +46,17 @@ export function RecentCaptures({ items, isLoading }: RecentCapturesProps) {
     <section className="space-y-3 pt-6 text-left" aria-labelledby="recent-captures-heading">
       <h2
         id="recent-captures-heading"
-        className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+        className="font-heading text-xs font-bold uppercase tracking-wider text-muted-foreground/90"
       >
         Recent captures
       </h2>
 
       {items.length === 0 ? (
-        <p className="text-xs text-muted-foreground/80 py-4 text-center border border-dashed border-border/80 rounded-lg">
+        <p className="text-xs text-muted-foreground/80 py-6 text-center border border-dashed border-border/80 rounded-xl bg-muted/10">
           No captures yet. Anything you type above will be saved locally.
         </p>
       ) : (
-        <ul className="divide-y divide-border/60 rounded-lg border border-border bg-card/40 overflow-hidden">
+        <ul className="divide-y divide-border/50 rounded-xl border border-border/80 bg-card/60 overflow-hidden shadow-2xs">
           {items.map((item) => {
             const isUrl = isLikelyUrl(item.raw_input)
             return (

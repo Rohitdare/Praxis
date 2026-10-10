@@ -151,10 +151,10 @@ export function AuthPage() {
     <main className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-6 selection:bg-primary selection:text-primary-foreground">
       <div className="w-full max-w-sm mx-auto space-y-6">
         <header className="space-y-2 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          <h1 className="font-heading font-extrabold text-3xl tracking-tight text-foreground">
             Personal Memory
           </h1>
-          <p className="text-sm text-muted-foreground leading-relaxed">
+          <p className="text-xs md:text-sm text-muted-foreground leading-relaxed">
             {isRecoveryMode
               ? "Set a new password for your account."
               : mode === "forgot"

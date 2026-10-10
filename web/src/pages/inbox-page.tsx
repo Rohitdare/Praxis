@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useNavigate } from "react-router-dom"
 import { useAuth } from "@/lib/auth/auth-context"
 import { useSync } from "@/lib/sync/sync-context"
 import { InboxFilters } from "@/components/inbox/inbox-filters"
@@ -16,6 +17,7 @@ import {
 export function InboxPage() {
   const { user } = useAuth()
   const { syncState } = useSync()
+  const navigate = useNavigate()
 
   const [items, setItems] = React.useState<InboxItem[]>([])
   const [filter, setFilter] = React.useState<InboxFilterType>("all")
@@ -92,26 +94,28 @@ export function InboxPage() {
   return (
     <div className="max-w-2xl mx-auto py-8 px-4 sm:px-6 space-y-6">
       {/* Header with Title and Item Count */}
-      <div className="flex items-baseline justify-between gap-4 border-b border-border/40 pb-4">
+      <div className="flex items-baseline justify-between gap-4 border-b border-border/50 pb-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Inbox</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
+          <h1 className="font-heading font-extrabold text-2xl md:text-3xl tracking-tight text-foreground">
+            Inbox
+          </h1>
+          <p className="text-xs text-muted-foreground mt-1">
             Triage newly captured notes, links, and ideas.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           {!isOnline && (
-            <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 font-medium">
+            <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 font-medium border border-amber-500/20">
               Offline mode
             </span>
           )}
           {hasFetchError && isOnline && (
-            <span className="text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-medium">
+            <span className="text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-medium border border-border/60">
               Local cache
             </span>
           )}
-          <span className="text-xs font-medium text-muted-foreground tabular-nums">
+          <span className="text-xs font-medium text-muted-foreground tabular-nums bg-muted/50 px-2.5 py-0.5 rounded-full border border-border/60">
             {items.length} {items.length === 1 ? "item" : "items"}
           </span>
         </div>
@@ -140,7 +144,10 @@ export function InboxPage() {
           items={filteredItems}
           selectedId={selectedId}
           deletingIds={deletingIds}
-          onSelect={(id) => setSelectedId(id === selectedId ? null : id)}
+          onSelect={(id) => {
+            setSelectedId(id)
+            navigate(`/items/${id}`)
+          }}
           onDelete={handleDelete}
         />
       )}

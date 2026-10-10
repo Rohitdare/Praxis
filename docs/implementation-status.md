@@ -1,9 +1,9 @@
 # Personal Memory App — Implementation Status
 
-**Status:** Phase 1C Completed (Online Synchronization Engine) — Ready for Phase 1D (Inbox Triage & Soft Delete)
-**Version:** 1.4
-**Date:** 2026-10-09
-**Assessed by:** Development Agent
+**Status:** UI Refinement & Design Quality Pass Completed
+**Version:** 1.7
+**Date:** 2026-10-10
+**Assessed by:** Senior Product Designer & Development Agent
 
 ---
 
@@ -415,24 +415,198 @@ Per PRD s8: Do not start Phase 2 until Phase 1 has been used for real for severa
   - Header with account information (Email, User ID, Provider name).
   - "Sign out" action integrated with `useAuth().signOut()`.
   - Storage & device privacy advisory regarding unencrypted browser IndexedDB storage.
-- **Sync Diagnostics & Recovery**:
+- **Sync Diagnostics & Safe Recovery Engine**:
   - Live synchronization status display (Synced, Syncing, Pending, Offline, Sync issue).
   - Diagnostic details box exposing `lastError` with actionable troubleshooting steps.
   - "Retry Sync Now" action via `retrySync(force)` in `web/src/lib/sync/sync-context.tsx`.
   - `resetFailedOutboxRecords(authenticatedUserId)` in `web/src/lib/sync/engine.ts` securely resets eligible failed outbox records for the active user while strictly excluding unauthenticated (`user_id = null`) and cross-account records.
-  - Automatic clearance of `lastErrorCache` once all records drain cleanly.
-- **Client-Side JSON Export (FR-31)**:
-  - Documented, versioned JSON schema (`schema_version: "1.0.0"`) defined in `web/src/lib/export/types.ts`.
-  - Service in `web/src/lib/export/service.ts`:
-    - Merges cloud data (`profiles`, `items`, `resources`, `tasks`, `calendar_events`, `tags`, `item_tags`, `item_relationships`) with Dexie `local_items`.
-    - Deduplicates records using stable UUIDs: local unsynchronized edits and soft-deletes take precedence over older cloud versions.
-    - Preserves soft-deleted tombstones (`deleted_at !== null`) so future imports do not accidentally resurrect deleted notes.
-    - Strict account ownership: `user_id = null` and foreign user items are strictly excluded from the export.
-    - Offline & partial resilience: when offline or if cloud queries encounter network failures, exports local data cleanly with `is_partial: true` and explicit diagnostic reasons.
-    - Purely client-side execution via `Blob` and Object URL; zero external API requests.
-- **Verification**:
-  - 13 test suites / 89 tests passing across `web/`.
-  - Zero TypeScript errors (`tsc -b`), zero linter errors (`oxlint`), production build successful (`vite build`).
-  - Pytest (6/6) and Ruff passing in `api/`.
-- **Remaining Cloud Blocker**:
-  - Requires executing `supabase/migrations/20261008000000_initial_schema.sql` in the live Supabase SQL Editor to eliminate the cloud 404 relation missing error.
+  - Automatic clearance of `lastErrorCache` once all records drain cleanly or when `clearLastError()` is invoked on retry, logout, or account switch.
+  - `getSyncEngineState(database, authenticatedUserId)` scopes pending and failed counts strictly to the active user, preventing cross-account false error badges.
+- **Client-Side JSON Export (FR-31) — Schema v1.0.0**:
+  - Documented, versioned JSON schema (`schema_version: "1.0.0"`) defined in `web/src/lib/export/types.ts`:
+    ```json
+    {
+      "metadata": {
+        "schema_version": "1.0.0",
+        "app_version": "0.1.0",
+        "exported_at": "ISO-8601 timestamp",
+        "user_id": "UUID",
+        "is_offline": false,
+        "is_partial": false,
+        "partial_reasons": [],
+        "sync_status": "synced",
+        "counts": {
+          "items_total": 0,
+          "items_active": 0,
+          "items_soft_deleted": 0,
+          "resources": 0,
+          "tasks": 0,
+          "calendar_events": 0,
+          "tags": 0,
+          "item_tags": 0,
+          "item_relationships": 0,
+          "unsynced_local_items": 0
+        }
+      },
+      "profile": { ... },
+      "items": [ ... ],
+      "resources": [ ... ],
+      "tasks": [ ... ],
+      "calendar_events": [ ... ],
+      "tags": [ ... ],
+      "item_tags": [ ... ],
+      "item_relationships": [ ... ]
+    }
+    ```
+  - **Service Pipeline** (`web/src/lib/export/service.ts`):
+    - Concurrent, isolated queries across all 8 cloud tables (`profiles`, `items`, `resources`, `tasks`, `calendar_events`, `tags`, `item_tags`, `item_relationships`).
+    - **Partial-Export Resilience**: If any cloud table query encounters an error (e.g., table missing, network drop), it does NOT abort the remaining tables; whatever data is successfully retrieved is included, and `is_partial: true` is flagged with diagnostic details.
+    - **Local/Cloud Merging Precedence**: Merges cloud records with local Dexie items using stable UUIDs. If a local item has unsynchronized edits (`!synced`) or a newer timestamp (`local.updated_at >= cloud.updated_at`), the local version takes precedence.
+    - **Tombstone Preservation**: Soft-deleted records (`deleted_at !== null`) are preserved in the export so future imports do not accidentally resurrect deleted notes.
+    - **Strict Ownership**: Local records with `user_id = null` and records belonging to other users are strictly excluded from the export.
+    - **Pure Client-Side**: Generates and downloads the `.json` file using native browser `Blob` and Object URL; zero external API requests.
+- **Verification Status — Distinction Between Automated & Live**:
+  - **Automated Mocked Tests**:
+    - **Frontend**: 13 test suites / 92 tests passing across `web/` (`npm test -- --run`).
+    - **TypeScript**: 0 errors (`tsc -b`).
+    - **Linter**: 0 errors (`oxlint`).
+    - **Production Build**: Successful bundle and PWA service worker generated (`vite build`).
+    - **Backend**: 6 / 6 tests passing (`pytest`) and `ruff check` passed.
+  - **Live Supabase Verification Status**:
+    - **NOT yet verified against live Supabase cloud**.
+    - In the current live browser session, the sync engine encounters PostgREST 404 relation missing errors because the SQL schema migration has not yet been executed in the remote Supabase project.
+    - **Action Required**: Run `supabase/migrations/20261008000000_initial_schema.sql` and `supabase/migrations/20261009000000_classify_item_rpc.sql` in the Supabase Dashboard SQL Editor before live cloud sync and full cloud classification can be verified.
+
+---
+
+## 14. Phase 2 — Item Classification & Editing (Completed)
+
+- **Item Detail Route & Navigation (SCR-04)**:
+  - Mounted `/items/:id` in `web/src/App.tsx` wrapped in `ProtectedRoute` and `AppShell`.
+  - Updated `web/src/pages/inbox-page.tsx` row selection to route to `/items/:id`.
+  - Implemented 4 distinct states:
+    - **Loading State**: Subtle pulsating skeleton placeholders with back link.
+    - **404 / Missing State**: Clear "Item Not Found" card with explanation and Return to Inbox button.
+    - **Permission Denied**: Strictly rejects cross-user queries via RLS (`user_id = auth.uid()`) and returns sanitized not-found state without leaking item metadata.
+    - **Editing Interface**: Clean editorial layout with title input, markdown content textarea, type selector, dynamic extension fields, and immutable `raw_input` provenance card.
+- **Classification & Extension Tables**:
+  - Supports 4 primary types: Note/Idea, Task, Resource, Event.
+  - **Editable fields**: `title` and `content`.
+  - **Immutable `raw_input` (ADR-06)**: Preserved untouched as read-only audit trail with copy button, monospace styling, and capture timestamp.
+  - **Extension Form Controls**:
+    - **Task**: Due date-time picker, 3-state priority buttons (`low`, `normal`, `high`), and completion toggle checkbox.
+    - **Resource**: URL input with validation and 3-state reading status (`unread`, `reading`, `completed`).
+    - **Event**: Start time, optional end time, and all-day toggle with validation (`end_at >= start_at`).
+- **PostgREST Transaction Safety (Atomic Classification & Fail-Closed Integrity)**:
+  - Addressed PostgREST limitation where multi-table REST updates are not inherently atomic.
+  - Added PostgreSQL stored function `classify_and_update_item` in migration `supabase/migrations/20261009000000_classify_item_rpc.sql`.
+  - Runs in a single atomic database transaction with `SECURITY INVOKER` and explicit `auth.uid() = p_user_id` authorization.
+  - Automatically upserts the target extension row (`tasks`, `resources`, `calendar_events`) and deletes any stale extension rows when switching types within the same transaction.
+  - **Fail-Closed Client Policy**: The client strictly invokes `classify_and_update_item` via RPC with zero silent fallbacks to independent multi-table writes. If the RPC fails or is missing, the mutation aborts immediately, leaving the database and local Dexie cache untouched, and presenting a clear error alert to the user without falsely displaying "Saved".
+- **Offline Behavior (ADR-02 Compliance)**:
+  - **Viewing cached items is permitted offline** via local Dexie IndexedDB cache (`fetchItemDetail` queries local DB when offline).
+  - **Editing, classification, and reorganization are strictly online-only**.
+  - All form controls and save actions are disabled when `navigator.onLine === false`.
+  - Amber warning banner is rendered alerting users that classification requires internet connectivity.
+  - Rejects offline mutations early before modifying any local or remote state, completely avoiding split-brain multi-device merge conflicts.
+- **Verification Status**:
+  - **Automated Tests**:
+    - **Frontend**: 20 test suites / 144 tests passing in `web/` (`npm test -- --run`).
+    - **Item Detail & RPC Suite**: 12/12 tests passing (`src/test/item-detail-service.test.ts`), verifying atomic type switching, fail-closed RPC errors, stale extension cleanup, Dexie cache preservation on failure, and cross-account rejection.
+    - **Item Detail UI Suite**: 6/6 tests passing (`src/test/item-detail-page.test.tsx`), verifying form save failure error alert (confirming "Saved" is never displayed on error).
+    - **Notes Service Suite**: 5/5 tests passing (`src/test/notes-service.test.ts`), verifying notes fetching, RPC note creation, immutable raw_input preservation on edit, and soft deletion.
+    - **Notes UI Suite**: 5/5 tests passing (`src/test/notes-page.test.tsx`), verifying list search, editor interactions, and offline read-only guard.
+    - **Calendar Service Suite**: 13/13 tests passing (`src/test/calendar.test.ts`), verifying timezone conversions, date validation, RPC event creation/updates, and soft deletion.
+    - **Calendar UI Suite**: 5/5 tests passing (`src/test/calendar-page.test.tsx`), verifying month navigation, date selection, date validation error handling, and offline banner.
+    - **Smart Capture Suite**: 6/6 tests passing (`src/test/smart-capture.test.ts`), verifying Pinterest resource + Inspiration tag categorization, task/event syntax detection, and immediate raw input capture.
+    - **TypeScript**: 0 errors (`tsc -b`).
+    - **Linter**: 0 errors (`oxlint`).
+    - **Production Build**: Clean production bundle with PWA service worker generated (`vite build`).
+    - **Backend**: 6/6 tests passing (`pytest`) and `ruff check` passed.
+
+---
+
+## 8. Stabilization + Notes + Calendar Deliverables (October 2026)
+
+### Deliverable 1 — Save Failure Resolution & RPC Stabilization
+- **Root Cause**: PostgREST returned `PGRST202: Could not find the function public.classify_and_update_item(...) in the schema cache` because the migration had not been executed on the live remote Supabase project, or lacked explicit `GRANT EXECUTE` permissions and schema cache notification.
+- **Idempotent Migration Created**: [`supabase/migrations/20261010000000_classify_item_rpc_idempotent.sql`](file:///d:/sample-projects/bruno/supabase/migrations/20261010000000_classify_item_rpc_idempotent.sql):
+  - Created with `SECURITY INVOKER`, enforcing authenticated user ID via `auth.uid() = v_user_id`.
+  - Added atomic `INSERT` (when `p_item_id` is null or new) and `UPDATE` (when existing item).
+  - Explicitly executes `GRANT EXECUTE ON FUNCTION public.classify_and_update_item(...) TO authenticated;`
+  - Explicitly executes `NOTIFY pgrst, 'reload schema';` to reload the PostgREST cache immediately.
+- **Fail-Closed Safeguard**: Strict fail-closed policy maintained in `web/src/lib/items/service.ts`, preventing silent multi-table writes when RPC is unavailable. Form inputs remain preserved on failure.
+
+### Deliverable 2 — Dedicated Notes Module (`/notes`)
+- **Navigation & Routing**: Mounted at `/notes` in `AppRoutes`, accessible from desktop header and mobile bottom navigation bar.
+- **Notes List**: Reverse-chronological list of active note/idea items, displaying title, content preview, and updated timestamp.
+- **Real-Time Search**: Title and content filtering across loaded notes.
+- **Editor**: Textarea supporting plain text and lightweight Markdown, immutable `raw_input` provenance badge, explicit Save with unsaved changes tracking, and `beforeunload` warning.
+- **Lifecycle**: Soft-delete using tombstone pattern, updating parent `items` record (`deleted_at = now()`).
+- **Offline Guard**: Renders clear banner and disables creation/editing while offline per ADR-02.
+
+### Deliverable 3 — Dedicated Calendar Module (`/calendar`)
+- **Navigation & Routing**: Mounted at `/calendar` in `AppRoutes`.
+- **Month Grid**: Desktop and mobile month grid with previous/next month navigation, Today jump, and date indicators.
+- **Event List**: Day-specific event list showing title, time/all-day badge, and description preview.
+- **Create & Edit Dialog**: Atomic event creation and updates via `classify_and_update_item` RPC with full date validation (`end_at >= start_at`).
+- **Timezone Management**: User timezone detected via browser/profile, converting timestamps to/from UTC `timestamptz`.
+- **Offline Guard**: Cached events viewable offline; creation and editing disabled with clear notice.
+
+### Deliverable 4 — Smart Capture Compatibility
+- **Deterministic Local Classification**: Fast synchronous syntax matching in `web/src/lib/db/capture.ts`:
+  - Pinterest URLs (`pinterest.com`, `pin.it`) automatically classify as `resource` with suggested tag `Inspiration` (`ai_tags: ["Inspiration"]`).
+  - Standard URLs classify as `resource`.
+  - Task language (`todo:`, `task:`, `[ ]`, `remember to`) classify as `task`.
+  - Event language (`event:`, `meeting:`, `call:`, `appointment with`) classify as `event`.
+  - Other text defaults to `unclassified`.
+- **Zero Overhead**: Preserves immediate raw input capture and Dexie transaction write (< 15 ms).
+
+---
+
+## 9. UI Refinement & Design Quality Pass Deliverables (October 2026)
+
+### Deliverable 1 — Typography System & Design Token Evolution
+- **Sculptural Geometric Display Typography**: Integrated Google Fonts (`Outfit`, `Plus Jakarta Sans`, `Syne`) inspired by user reference typography specimens (`flexing`, `spark.`).
+- **Heading Standardization**: `--font-heading` assigned to all titles, brand headers, dialog headings, and modal sections (`font-heading font-extrabold tracking-tight`).
+- **Body Legibility**: `--font-sans` configured with `@fontsource-variable/geist` (`Geist Variable`) and `@fontsource/inter` for warm, legible, distraction-free reading measure.
+- **Surface & Token Polish**: Replaced harsh card containers with subtle rounded-xl borders (`border-border/80`), tactile shadows (`shadow-2xs`), and restrained accents.
+
+### Deliverable 2 — Screen Refinements
+- **App Shell & Navigation**:
+  - Brand header elevated with bold geometric display title `Personal Memory`.
+  - Desktop nav links styled with subtle tactile active pills (`bg-secondary text-foreground font-semibold shadow-2xs`).
+  - Mobile bottom navigation bar refined with 44px min touch targets, clean backdrop blur (`bg-background/95 backdrop-blur-md`), and distinct active states.
+  - Quiet, unobtrusive `SyncIndicator` integration.
+- **Capture Experience (`/capture`)**:
+  - Dominant hero capture section with bold typography.
+  - Live deterministic smart-capture suggestion badge dynamically rendered during typing (e.g. `Resource · Inspiration` for Pinterest, `Resource` for URLs, `Task` for todos, `Event` for meetings) without adding clicks or network round-trips.
+  - Subdued keyboard instructions (`Enter` to save, `Shift+Enter` for newline) with monospace kbd styling.
+  - Elevated recent captures list with relative timestamps and distinct icon treatments.
+- **Inbox & Triage (`/inbox`)**:
+  - Refined filter pill navigation with count badges and smooth active indicators.
+  - Item rows styled with subtle rounded-xl borders, category badges, soft delete controls, and offline indicators.
+- **Item Detail & Classification (`/items/:id`)**:
+  - Unified header with breadcrumb and Save Changes action.
+  - TypeSelector segmented pill buttons for instant classification switching.
+  - Authoritative, clean read-only provenance card for immutable `raw_input` (ADR-06).
+- **Notes (`/notes`)**:
+  - Two-column layout with real-time search, count badges, and clean list item cards.
+  - Distraction-free Markdown editor with display title typography and unsaved change detection.
+- **Calendar (`/calendar`)**:
+  - High-clarity month grid with uppercase weekday headers, today indicator, and event pills.
+  - Selected day agenda view with quick event creation and edit dialog.
+- **Settings (`/settings`)**:
+  - Logically grouped Account, Synchronization, and Data Portability sections with diagnostic details.
+  - Tactile action buttons for Retry Sync and JSON Export.
+
+### Verification Matrix
+- **Vitest Unit/Integration Tests**: 20/20 test files (145/145 tests) passing.
+- **TypeScript Typecheck**: 0 errors (`tsc -b`).
+- **Linter**: 0 errors (`oxlint`).
+- **Vite Production Build**: Successful bundle generation in 2.00s.
+- **FastAPI Pytest**: 6/6 tests passing.
+- **FastAPI Ruff**: All checks passed.
+
+
+

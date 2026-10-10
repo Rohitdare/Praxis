@@ -45,20 +45,20 @@ export function InboxFilters({
             aria-controls="inbox-item-list"
             onClick={() => onFilterChange(option.id)}
             className={cn(
-              "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap outline-none",
+              "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap outline-none",
               "focus-visible:ring-2 focus-visible:ring-ring/50",
               isActive
-                ? "bg-secondary text-secondary-foreground font-semibold shadow-xs"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                ? "bg-secondary text-secondary-foreground font-semibold shadow-2xs border border-border/80"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/60 border border-transparent"
             )}
           >
             <span>{option.label}</span>
             {count !== undefined && count > 0 && (
               <span
                 className={cn(
-                  "text-[10px] px-1.5 py-0.2 rounded-full",
+                  "text-[10px] px-1.5 py-0.2 rounded-full tabular-nums",
                   isActive
-                    ? "bg-foreground/10 text-foreground"
+                    ? "bg-foreground/10 text-foreground font-medium"
                     : "bg-muted text-muted-foreground"
                 )}
               >

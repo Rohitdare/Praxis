@@ -181,7 +181,9 @@ describe("Phase 1B: CaptureBar & Capture Flow", () => {
     })
 
     // Initially empty
-    expect(screen.getByText(/No captures yet/i)).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText(/No captures yet/i)).toBeInTheDocument()
+    })
 
     // Capture first item
     const textarea = screen.getByLabelText("Capture input")

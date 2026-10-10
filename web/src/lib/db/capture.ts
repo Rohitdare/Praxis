@@ -22,6 +22,69 @@ function getMonotonicIsoString(): string {
   return new Date(timestamp).toISOString()
 }
 
+export interface DeterministicClassification {
+  type: LocalItem["type"]
+  suggestedTags?: string[]
+}
+
+/**
+ * Deterministic local classification based on input syntax.
+ * Zero external calls, zero network overhead, synchronous.
+ */
+export function classifyInputLocally(rawInput: string): DeterministicClassification {
+  const trimmed = rawInput.trim()
+
+  // 1. Obvious URL check
+  if (/^https?:\/\/[^\s]+$/i.test(trimmed)) {
+    try {
+      const parsedUrl = new URL(trimmed)
+      const hostname = parsedUrl.hostname.toLowerCase()
+      // Pinterest URL defaults to Resource with suggested Inspiration category
+      if (
+        hostname === "pinterest.com" ||
+        hostname.endsWith(".pinterest.com") ||
+        hostname === "pin.it"
+      ) {
+        return {
+          type: "resource",
+          suggestedTags: ["Inspiration"],
+        }
+      }
+      return {
+        type: "resource",
+      }
+    } catch {
+      return {
+        type: "resource",
+      }
+    }
+  }
+
+  // 2. Explicit task language check
+  if (
+    /^(\[[\s]\]|[-*]\s*\[[\s]\]|todo:\s*|task:\s*)/i.test(trimmed) ||
+    /^(remember to|need to|don't forget to)\s+/i.test(trimmed)
+  ) {
+    return {
+      type: "task",
+    }
+  }
+
+  // 3. Explicit event language check
+  if (
+    /^(event:\s*|meeting:\s*|call:\s*)/i.test(trimmed) ||
+    /\b(meeting with|call with|appointment with|appointment at|flight to)\b/i.test(trimmed)
+  ) {
+    return {
+      type: "event",
+    }
+  }
+
+  return {
+    type: "unclassified",
+  }
+}
+
 /**
  * Capture an arbitrary input string to the local database immediately.
  * Generates a client-side UUIDv4 and writes both local_items and outbox
@@ -44,7 +107,10 @@ export async function captureItem(
   const outboxId = crypto.randomUUID()
   const now = getMonotonicIsoString()
 
-  // 2. Build local_item record preserving exact raw input
+  // 2. Classify input deterministically (no remote/AI network calls)
+  const classification = classifyInputLocally(input.rawInput)
+
+  // 3. Build local_item record preserving exact raw input
   const localItem: LocalItem = {
     id: itemId,
     user_id: input.userId || null,
@@ -53,10 +119,11 @@ export async function captureItem(
     created_at: now,
     updated_at: now,
     deleted_at: null,
-    type: "unclassified",
+    type: classification.type,
     status: "inbox",
     title: null,
     content: null,
+    ai_tags: classification.suggestedTags || null,
     synced: false,
   }
 

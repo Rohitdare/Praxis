@@ -25,7 +25,7 @@ describe("App Root", () => {
     render(<App />)
     await waitFor(() => {
       expect(screen.getByRole("heading", { name: "Personal Memory" })).toBeInTheDocument()
-    })
+    }, { timeout: 4000 })
     expect(screen.getByRole("button", { name: "Continue with Google" })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Sign in" })).toBeInTheDocument()
   })

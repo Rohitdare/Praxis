@@ -126,18 +126,36 @@ export function clearLastError(): void {
  * Reads current sync state from IndexedDB.
  */
 export async function getSyncEngineState(
-  database: PersonalMemoryDB = db
+  database: PersonalMemoryDB = db,
+  authenticatedUserId?: string | null
 ): Promise<SyncEngineState> {
   const isOffline = typeof navigator !== "undefined" && navigator.onLine === false
 
-  const pendingCount = await database.outbox
-    .where("status")
-    .equals("pending")
-    .or("status")
-    .equals("syncing")
-    .count()
+  let pendingCount = 0
+  let failedCount = 0
 
-  const failedCount = await database.outbox.where("status").equals("failed").count()
+  if (authenticatedUserId) {
+    pendingCount = await database.outbox
+      .filter(
+        (rec) =>
+          rec.payload.user_id === authenticatedUserId &&
+          (rec.status === "pending" || rec.status === "syncing")
+      )
+      .count()
+
+    failedCount = await database.outbox
+      .filter((rec) => rec.payload.user_id === authenticatedUserId && rec.status === "failed")
+      .count()
+  } else {
+    pendingCount = await database.outbox
+      .where("status")
+      .equals("pending")
+      .or("status")
+      .equals("syncing")
+      .count()
+
+    failedCount = await database.outbox.where("status").equals("failed").count()
+  }
 
   if (!lastSyncedAtCache) {
     const meta = await database.sync_meta.get("last_synced_at")
@@ -254,18 +272,12 @@ export async function drainOutbox(options: DrainOptions = {}): Promise<SyncResul
         // Safety check 1: Unauthenticated captures must remain local-only in IndexedDB
         if (!item.user_id) {
           result.skippedCount++
-          result.errors.push(
-            `Skipped record ${record.id}: Unauthenticated local capture is not eligible for cloud sync`
-          )
           continue
         }
 
         // Safety check 2: Never sync another user's local records into active account (account switching)
         if (item.user_id !== authenticatedUserId) {
           result.skippedCount++
-          result.errors.push(
-            `Skipped record ${record.id}: Item owned by user ${item.user_id}, active user is ${authenticatedUserId}`
-          )
           continue
         }
 

@@ -23,7 +23,7 @@ export function mapLocalItemToServerItem(
     title: item.title ?? null,
     content: item.content ?? null,
     ai_type: null,
-    ai_tags: null,
+    ai_tags: item.ai_tags ?? null,
     ai_confidence: null,
     ai_model: null,
   }

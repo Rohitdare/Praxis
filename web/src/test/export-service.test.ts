@@ -291,4 +291,83 @@ describe("Phase 1E: JSON Export Service", () => {
       })
     ).rejects.toThrow(/Valid authenticated user_id is required/i)
   })
+
+  it("10. partial export: isolated table failure (e.g. tasks fails) does NOT prevent items from exporting", async () => {
+    // items query succeeds, but tasks query rejects with error
+    mockSupabase.from = vi.fn().mockImplementation((table: string) => ({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockImplementation((_col: string, _val: string) => {
+        if (table === "items") {
+          return Promise.resolve({
+            data: [
+              {
+                id: "item-partial-test",
+                user_id: testUserId,
+                raw_input: "Valid item should be exported",
+                title: "Valid Item",
+                content: null,
+                type: "note",
+                status: "inbox",
+                captured_at: "2026-10-09T10:00:00.000Z",
+                created_at: "2026-10-09T10:00:00.000Z",
+                updated_at: "2026-10-09T10:00:00.000Z",
+                deleted_at: null,
+                ai_type: null,
+                ai_tags: null,
+                ai_confidence: null,
+                ai_model: null,
+              },
+            ],
+            error: null,
+          })
+        }
+        if (table === "tasks") {
+          return Promise.resolve({
+            data: null,
+            error: { message: "Network timeout querying tasks" },
+          })
+        }
+        return Promise.resolve({ data: [], error: null })
+      }),
+    }))
+
+    const exportResult = await gatherExportData(testUserId, {
+      supabaseClient: mockSupabase as unknown as SupabaseClient,
+      database: testDb,
+    })
+
+    // Marked as partial
+    expect(exportResult.metadata.is_partial).toBe(true)
+    expect(exportResult.metadata.partial_reasons).toContain(
+      "Failed to fetch cloud tasks: Network timeout querying tasks"
+    )
+    // Items are STILL successfully present despite the tasks query failure
+    expect(exportResult.items).toHaveLength(1)
+    expect(exportResult.items[0].id).toBe("item-partial-test")
+  })
+
+  it("11. partial export: user's failed outbox records flag export as partial with diagnostic reason", async () => {
+    // Normal cloud fetch
+    // Add local capture and force its outbox record to "failed"
+    const capture = await captureItem(
+      { rawInput: "Note with failed sync", userId: testUserId },
+      testDb
+    )
+    await testDb.outbox.update(capture.outbox.id, {
+      status: "failed",
+      last_error: "400 Bad Request: Malformed JSON",
+    })
+
+    const exportResult = await gatherExportData(testUserId, {
+      supabaseClient: mockSupabase as unknown as SupabaseClient,
+      database: testDb,
+    })
+
+    expect(exportResult.metadata.is_partial).toBe(true)
+    expect(
+      exportResult.metadata.partial_reasons.some((r) =>
+        r.includes("failed to sync to the cloud and remain in outbox")
+      )
+    ).toBe(true)
+  })
 })

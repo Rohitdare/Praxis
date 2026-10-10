@@ -6,6 +6,7 @@ import {
   calculateBackoffMs,
   determineSyncStatus,
   drainOutbox,
+  getSyncEngineState,
   recoverStaleSyncingRecords,
   resetFailedOutboxRecords,
 } from "@/lib/sync/engine"
@@ -455,5 +456,27 @@ describe("Phase 1C: Synchronization Engine", () => {
     // Anon record remains failed
     const updatedAnonOutbox = await testDb.outbox.get(captureAnon.outbox.id)
     expect(updatedAnonOutbox?.status).toBe("failed")
+  })
+
+  it("15. getSyncEngineState: scopes pending and failed counts to authenticated user, preserving account-switch isolation", async () => {
+    // 1. User A has a failed item in outbox
+    const userA = "user-A"
+    const captureA = await captureItem({ rawInput: "User A failed", userId: userA }, testDb)
+    await testDb.outbox.update(captureA.outbox.id, {
+      status: "failed",
+      last_error: "Some 400 error",
+    })
+
+    // 2. User B logs in (clean state, 0 items)
+    const userB = "user-B"
+    const stateForB = await getSyncEngineState(testDb, userB)
+
+    // User B should NOT see User A's failed item or error badge
+    expect(stateForB.pendingCount).toBe(0)
+    expect(stateForB.status).toBe("synced")
+
+    // User A querying their state DOES see their failed item
+    const stateForA = await getSyncEngineState(testDb, userA)
+    expect(stateForA.status).toBe("error")
   })
 })

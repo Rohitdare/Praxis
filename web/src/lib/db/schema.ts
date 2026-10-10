@@ -12,6 +12,7 @@ export interface LocalItem {
   status: ItemStatus
   title: string | null
   content: string | null
+  ai_tags?: string[] | null
   synced: boolean
 }
 

@@ -96,20 +96,20 @@ export function ItemRow({
         }
       }}
       className={cn(
-        "group relative flex items-start justify-between gap-3 p-3.5 rounded-lg border border-transparent transition-colors outline-none",
-        "hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring/50",
-        isSelected && "bg-muted/70 border-border/60",
+        "group relative flex items-start justify-between gap-3 p-3.5 rounded-xl border border-transparent transition-all outline-none",
+        "hover:bg-muted/30 hover:border-border/60 focus-visible:ring-2 focus-visible:ring-ring/50",
+        isSelected && "bg-muted/60 border-border/80 shadow-2xs",
         busy && "opacity-40 pointer-events-none",
         className
       )}
     >
       <div className="flex items-start gap-3 min-w-0 flex-1">
-        <div className="mt-0.5 p-1 rounded-md bg-muted/60 text-muted-foreground group-hover:bg-background/80 transition-colors">
+        <div className="mt-0.5 p-1.5 rounded-lg bg-muted/60 text-muted-foreground group-hover:bg-background transition-colors border border-border/40 shrink-0">
           {getItemTypeIcon(item.type)}
         </div>
 
-        <div className="space-y-1 min-w-0 flex-1">
-          <p className="text-sm font-normal text-foreground leading-snug break-words whitespace-pre-wrap">
+        <div className="space-y-1.5 min-w-0 flex-1">
+          <p className="text-sm font-normal text-foreground leading-relaxed break-words whitespace-pre-wrap">
             {item.raw_input}
           </p>
 

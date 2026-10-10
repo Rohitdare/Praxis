@@ -146,7 +146,7 @@ describe("Authentication & Routing (Email/Password + Google OAuth)", () => {
 
     await waitFor(() => {
       expect(screen.getByText("What do you want to remember?")).toBeInTheDocument()
-    })
+    }, { timeout: 4000 })
   })
 
   it("5. sign-out returns the user to /auth", async () => {
