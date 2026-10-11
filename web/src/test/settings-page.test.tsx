@@ -50,7 +50,7 @@ describe("Phase 1E: SettingsPage Component", () => {
     })
   })
 
-  it("1. renders Account information, Sync section, and Data Export section", () => {
+  it("1. renders Account & Security information, Sync section, and Data Export section", () => {
     render(
       <MemoryRouter>
         <SettingsPage />
@@ -58,6 +58,7 @@ describe("Phase 1E: SettingsPage Component", () => {
     )
 
     expect(screen.getByRole("heading", { name: "Settings" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "Account & Security" })).toBeInTheDocument()
     expect(screen.getByText("settings-user@example.com")).toBeInTheDocument()
     expect(screen.getByText("test-user-uuid-1234")).toBeInTheDocument()
     expect(screen.getByText("Email & Password")).toBeInTheDocument()
@@ -67,15 +68,35 @@ describe("Phase 1E: SettingsPage Component", () => {
     expect(screen.getByText(/Local Storage & Device Security/i)).toBeInTheDocument()
   })
 
-  it("2. Sign out button calls signOut()", async () => {
+  it("2. Sign out button opens confirmation dialog and confirms or cancels cleanly", async () => {
     render(
       <MemoryRouter>
         <SettingsPage />
       </MemoryRouter>
     )
 
-    const signOutBtn = screen.getByRole("button", { name: "Sign out" })
-    await userEvent.click(signOutBtn)
+    const initialSignOutBtn = screen.getByRole("button", { name: "Sign out" })
+    await userEvent.click(initialSignOutBtn)
+
+    // Dialog appears
+    expect(screen.getByRole("dialog")).toBeInTheDocument()
+    expect(screen.getByText("Sign out of Praxis?")).toBeInTheDocument()
+
+    // Test Cancel button dismisses without calling signOut
+    const cancelBtn = screen.getByRole("button", { name: "Cancel" })
+    await userEvent.click(cancelBtn)
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+    expect(mockSignOut).not.toHaveBeenCalled()
+
+    // Reopen dialog and confirm sign out
+    await userEvent.click(screen.getByRole("button", { name: "Sign out" }))
+    expect(screen.getByRole("dialog")).toBeInTheDocument()
+
+    // In the dialog, click the destructive Sign out button
+    const confirmSignOutBtn = screen.getByRole("dialog").querySelector("button.bg-destructive") ||
+      screen.getAllByRole("button", { name: "Sign out" }).find(b => b.closest('[role="dialog"]'))
+    expect(confirmSignOutBtn).toBeTruthy()
+    await userEvent.click(confirmSignOutBtn!)
 
     expect(mockSignOut).toHaveBeenCalledTimes(1)
   })

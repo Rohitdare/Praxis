@@ -220,7 +220,7 @@ export async function updateItemClassification(
   }
 
   // 1. Invoke atomic PostgreSQL RPC
-  const { data: rpcResult, error: rpcErr } = await (client as any).rpc(
+  const { data: rpcResult, error: rpcErr } = await client.rpc(
     "classify_and_update_item",
     rpcParams
   )

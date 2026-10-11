@@ -32,7 +32,21 @@ export function SettingsPage() {
   } | null>(null)
   const [exportError, setExportError] = React.useState<string | null>(null)
 
-  const handleSignOut = async () => {
+  const [showSignOutConfirm, setShowSignOutConfirm] = React.useState(false)
+
+  React.useEffect(() => {
+    if (!showSignOutConfirm) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowSignOutConfirm(false)
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [showSignOutConfirm])
+
+  const handleConfirmSignOut = async () => {
+    setShowSignOutConfirm(false)
     await signOut()
     navigate("/auth", { replace: true })
   }
@@ -96,10 +110,11 @@ export function SettingsPage() {
         </p>
       </header>
 
-      {/* Account Section */}
+      {/* Account & Security Section */}
       <section className="p-5 md:p-6 rounded-xl border border-border/80 bg-card/60 space-y-4 shadow-2xs">
         <h2 className="font-heading font-bold text-sm tracking-tight text-foreground flex items-center gap-2">
-          Account
+          <Shield className="size-4 text-muted-foreground" aria-hidden="true" />
+          Account & Security
         </h2>
 
         <div className="space-y-3 text-xs md:text-sm">
@@ -121,20 +136,76 @@ export function SettingsPage() {
           </div>
         </div>
 
-        <div className="pt-2">
+        <div className="pt-2 flex items-center justify-between">
           <Button
             type="button"
             variant="outline"
             size="sm"
-            onClick={handleSignOut}
-            className="text-xs inline-flex items-center gap-1.5 rounded-lg shadow-2xs hover:shadow-xs"
+            onClick={() => setShowSignOutConfirm(true)}
+            className="text-xs inline-flex items-center gap-1.5 rounded-lg border-destructive/25 text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/40 shadow-2xs transition-colors"
             aria-label="Sign out"
           >
             <LogOut className="size-3.5" />
             Sign out
           </Button>
+          <span className="text-[11px] text-muted-foreground hidden sm:inline">
+            Signing out clears your active session.
+          </span>
         </div>
       </section>
+
+      {/* Sign Out Confirmation Dialog */}
+      {showSignOutConfirm && (
+        <div
+          className="fixed inset-0 z-50 bg-background/80 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+          role="presentation"
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="signout-dialog-title"
+            aria-describedby="signout-dialog-description"
+            className="w-full max-w-sm rounded-xl border border-border bg-card p-5 md:p-6 shadow-lg space-y-4"
+          >
+            <div className="space-y-1.5">
+              <h3
+                id="signout-dialog-title"
+                className="font-heading font-bold text-base text-foreground tracking-tight"
+              >
+                Sign out of Praxis?
+              </h3>
+              <p
+                id="signout-dialog-description"
+                className="text-xs text-muted-foreground leading-relaxed"
+              >
+                Are you sure you want to sign out? Your unsynchronized captures and cached items will remain safely stored on this device.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-border/50">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowSignOutConfirm(false)}
+                className="text-xs rounded-lg"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                onClick={handleConfirmSignOut}
+                className="text-xs inline-flex items-center gap-1.5 rounded-lg font-medium"
+              >
+                <LogOut className="size-3.5" />
+                Sign out
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Synchronization Diagnostics Section */}
       <section className="p-5 md:p-6 rounded-xl border border-border/80 bg-card/60 space-y-4 shadow-2xs">
@@ -251,7 +322,7 @@ export function SettingsPage() {
             Data Portability & Export
           </h2>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Export all personal memory data in a documented, portable JSON format (schema v1.0.0).
+            Export all Praxis data in a documented, portable JSON format (schema v1.0.0).
             The file includes cloud items, local unsynchronized notes, resources, tasks, and
             soft-deleted tombstones. Runs completely inside your browser.
           </p>
@@ -323,7 +394,7 @@ export function SettingsPage() {
           <span>Local Storage & Device Security</span>
         </div>
         <p className="leading-relaxed text-[11px]">
-          Personal Memory operates local-first. Unsynchronized captures and cached notes reside
+          Praxis operates local-first. Unsynchronized captures and cached notes reside
           inside this browser's IndexedDB storage. On shared or public computers, always click{" "}
           <strong className="text-foreground">Sign out</strong> to clear your session.
         </p>

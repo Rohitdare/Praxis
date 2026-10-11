@@ -88,8 +88,8 @@ export function InboxPage() {
     }
   }
 
-  const filteredItems = filterInboxItems(items, filter)
-  const filterCounts = countInboxItemsByFilter(items)
+  const filteredItems = React.useMemo(() => filterInboxItems(items, filter), [items, filter])
+  const filterCounts = React.useMemo(() => countInboxItemsByFilter(items), [items])
 
   return (
     <div className="w-full max-w-4xl lg:max-w-5xl mx-auto py-6 md:py-10 space-y-6">

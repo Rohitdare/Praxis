@@ -15,6 +15,7 @@ import {
 import { useAuth } from "@/lib/auth/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { DateTimeSelector } from "@/components/ui/date-time-picker"
 import {
   fetchCalendarEvents,
   createCalendarEvent,
@@ -59,6 +60,7 @@ export function CalendarPage() {
   // Dialog / Edit state
   const [dialogOpen, setDialogOpen] = React.useState(false)
   const [editingEvent, setEditingEvent] = React.useState<CalendarEventRecord | null>(null)
+  const [pendingEventId, setPendingEventId] = React.useState<string>(() => crypto.randomUUID())
   const [formTitle, setFormTitle] = React.useState("")
   const [formContent, setFormContent] = React.useState("")
   const [formStart, setFormStart] = React.useState("")
@@ -181,6 +183,7 @@ export function CalendarPage() {
   const openCreateDialog = (targetDateKey?: string) => {
     const dateKey = targetDateKey || selectedDateKey
     setEditingEvent(null)
+    setPendingEventId(crypto.randomUUID())
     setFormTitle("")
     setFormContent("")
     setFormAllDay(false)
@@ -248,11 +251,13 @@ export function CalendarPage() {
           startAt: startUtc,
           endAt: endUtc,
           allDay: formAllDay,
+          itemId: pendingEventId,
         })
         setEvents((prev) => [...prev, created])
       }
       setDialogOpen(false)
     } catch (err) {
+      console.error("Failed to save calendar event:", err)
       setFormError(err instanceof Error ? err.message : "Failed to save event")
     } finally {
       setIsSubmitting(false)
@@ -601,41 +606,33 @@ export function CalendarPage() {
                 </label>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label htmlFor="startDateTimeInput" className="text-xs font-medium text-foreground block mb-1">
-                    Start {formAllDay ? "Date" : "Date & Time"} <span className="text-destructive">*</span>
-                  </label>
-                  <Input
-                    id="startDateTimeInput"
-                    type={formAllDay ? "date" : "datetime-local"}
-                    value={formAllDay ? formStart.slice(0, 10) : formStart}
-                    onChange={(e) =>
-                      setFormStart(formAllDay ? `${e.target.value}T00:00` : e.target.value)
-                    }
-                    required
-                    disabled={isSubmitting || !isOnline}
-                    className="text-xs"
-                  />
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <DateTimeSelector
+                  dateId="startDateTimeInput"
+                  timeId="startTimeInput"
+                  dateLabel="Start Date"
+                  timeLabel="Start Time"
+                  ariaLabel="Start Date & Time"
+                  value={formStart}
+                  onChange={setFormStart}
+                  hideTime={formAllDay}
+                  required
+                  disabled={isSubmitting || !isOnline}
+                  defaultTime="09:00"
+                />
 
-                <div>
-                  <label htmlFor="endDateTimeInput" className="text-xs font-medium text-foreground block mb-1">
-                    End {formAllDay ? "Date" : "Date & Time"}
-                  </label>
-                  <Input
-                    id="endDateTimeInput"
-                    type={formAllDay ? "date" : "datetime-local"}
-                    value={formAllDay && formEnd ? formEnd.slice(0, 10) : formEnd}
-                    onChange={(e) =>
-                      setFormEnd(
-                        e.target.value ? (formAllDay ? `${e.target.value}T23:59` : e.target.value) : ""
-                      )
-                    }
-                    disabled={isSubmitting || !isOnline}
-                    className="text-xs"
-                  />
-                </div>
+                <DateTimeSelector
+                  dateId="endDateTimeInput"
+                  timeId="endTimeInput"
+                  dateLabel="End Date"
+                  timeLabel="End Time"
+                  ariaLabel="End Date & Time"
+                  value={formEnd}
+                  onChange={setFormEnd}
+                  hideTime={formAllDay}
+                  disabled={isSubmitting || !isOnline}
+                  defaultTime="10:00"
+                />
               </div>
 
               <div className="flex items-center justify-between pt-2 border-t border-border">

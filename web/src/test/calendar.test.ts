@@ -119,12 +119,12 @@ describe("Calendar Service Operations", () => {
     expect(events[0].startAt).toBe("2026-10-15T10:00:00Z")
   })
 
-  it("creates calendar event atomically via classify_and_update_item RPC", async () => {
+  it("creates calendar event atomically via classify_and_update_item RPC with valid client UUIDv4", async () => {
     const rpcResponse = {
       data: {
         success: true,
         item: {
-          id: "event-new",
+          id: "12345678-1234-4234-8234-123456789012",
           user_id: "user-123",
           title: "Team Retrospective",
           content: "Discuss what went well",
@@ -133,8 +133,8 @@ describe("Calendar Service Operations", () => {
           created_at: "2026-10-10T10:00:00Z",
           updated_at: "2026-10-10T10:00:00Z",
         },
-        extension: {
-          item_id: "event-new",
+        event: {
+          item_id: "12345678-1234-4234-8234-123456789012",
           start_at: "2026-10-16T15:00:00Z",
           end_at: "2026-10-16T16:00:00Z",
           all_day: false,
@@ -153,20 +153,84 @@ describe("Calendar Service Operations", () => {
       allDay: false,
     })
 
-    expect(created.itemId).toBe("event-new")
+    expect(created.itemId).toBe("12345678-1234-4234-8234-123456789012")
     expect(created.title).toBe("Team Retrospective")
     expect(created.startAt).toBe("2026-10-16T15:00:00Z")
 
     expect(supabase.rpc).toHaveBeenCalledWith(
       "classify_and_update_item",
       expect.objectContaining({
-        p_item_id: null,
+        p_item_id: expect.stringMatching(
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+        ),
         p_type: "event",
         p_title: "Team Retrospective",
         p_start_at: "2026-10-16T15:00:00Z",
         p_end_at: "2026-10-16T16:00:00Z",
       })
     )
+  })
+
+  it("preserves stable itemId across retries and handles all-day events", async () => {
+    const stableId = "bbbbbbbb-bbbb-4bbb-abbb-bbbbbbbbbbbb"
+    const rpcResponse = {
+      data: {
+        success: true,
+        item: {
+          id: stableId,
+          user_id: "user-123",
+          title: "All-Day Summit",
+          content: null,
+          type: "event",
+          status: "active",
+          created_at: "2026-10-10T10:00:00Z",
+          updated_at: "2026-10-10T10:00:00Z",
+        },
+        event: {
+          item_id: stableId,
+          start_at: "2026-10-20T00:00:00Z",
+          end_at: "2026-10-20T23:59:00Z",
+          all_day: true,
+        },
+      },
+      error: null,
+    }
+    vi.mocked(supabase.rpc).mockResolvedValue(rpcResponse as any)
+
+    const created = await createCalendarEvent({
+      userId: "user-123",
+      title: "All-Day Summit",
+      startAt: "2026-10-20T00:00:00Z",
+      endAt: "2026-10-20T23:59:00Z",
+      allDay: true,
+      itemId: stableId,
+    })
+
+    expect(created.itemId).toBe(stableId)
+    expect(created.allDay).toBe(true)
+    expect(supabase.rpc).toHaveBeenCalledWith(
+      "classify_and_update_item",
+      expect.objectContaining({
+        p_item_id: stableId,
+        p_type: "event",
+        p_all_day: true,
+      })
+    )
+  })
+
+  it("throws clear diagnostic error if classify_and_update_item RPC fails", async () => {
+    vi.mocked(supabase.rpc).mockResolvedValue({
+      data: null,
+      error: { message: "Database connection timed out" },
+    } as any)
+
+    await expect(
+      createCalendarEvent({
+        userId: "user-123",
+        title: "Team Retrospective",
+        startAt: "2026-10-16T15:00:00Z",
+      })
+    ).rejects.toThrow(/Failed to create calendar event: Database connection timed out/i)
   })
 
   it("updates calendar event atomically via classify_and_update_item RPC", async () => {

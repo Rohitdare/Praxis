@@ -1,32 +1,42 @@
-# React + TypeScript + Vite
+# Praxis Web Client (`web/`)
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+The frontend application for Praxis, built as a local-first Progressive Web Application (PWA).
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Framework**: [React 19](https://react.dev/) + [TypeScript 6](https://www.typescriptlang.org/)
+- **Bundler**: [Vite 8](https://vite.dev/) with `@tailwindcss/vite` and `vite-plugin-pwa`
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) with semantic color tokens and dark/light modes
+- **Local Storage**: [Dexie](https://dexie.com/) (IndexedDB wrapper) for offline capture and outbox queue
+- **Remote DB & Auth**: [@supabase/supabase-js](https://supabase.com/docs/reference/javascript) with direct RLS
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Testing**: [Vitest](https://vitest.dev/) + React Testing Library + `fake-indexeddb`
+- **Linter**: [Oxlint](https://oxc.rs/docs/guide/usage/linter)
 
-## React Compiler
+## Development
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+# Install dependencies
+npm install
 
-## Expanding the Oxlint configuration
+# Start Vite development server
+npm run dev
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+# Run type check
+npm run typecheck
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+# Run linter
+npm run lint
+
+# Run automated tests
+npm test
+
+# Build production bundle
+npm run build
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Architecture Notes
+
+- **Offline-First**: User capture writes immediately to local IndexedDB before queuing for outbox synchronization.
+- **Route Code Splitting**: Routes (`/capture`, `/inbox`, `/notes`, `/calendar`, `/items/:id`, `/settings`, `/auth`) are loaded on-demand via `React.lazy()` to maintain a fast initial bundle load.
+- **Type Safety**: Database tables and PostgreSQL RPC functions are strongly typed in `src/lib/supabase/database.types.ts`.

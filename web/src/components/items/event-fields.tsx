@@ -1,4 +1,5 @@
 import type { EventFields } from "@/lib/items/types"
+import { DateTimeSelector } from "@/components/ui/date-time-picker"
 
 interface EventFieldsProps {
   fields: EventFields
@@ -26,48 +27,51 @@ export function EventFieldsComponent({
     }
   }
 
+  const handleStartChange = (val: string) => {
+    onChange({
+      ...fields,
+      start_at: val ? new Date(val).toISOString() : "",
+    })
+  }
+
+  const handleEndChange = (val: string) => {
+    onChange({
+      ...fields,
+      end_at: val ? new Date(val).toISOString() : null,
+    })
+  }
+
   return (
     <div className="p-4 rounded-lg border border-border/80 bg-muted/20 space-y-4 text-xs">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Start Date */}
-        <div className="space-y-1.5">
-          <label htmlFor="event-start-time" className="font-medium text-foreground block">
-            Start Time <span className="text-destructive">*</span>
-          </label>
-          <input
-            id="event-start-time"
-            type="datetime-local"
-            value={formatDatetimeForInput(fields.start_at)}
-            onChange={(e) =>
-              onChange({
-                ...fields,
-                start_at: e.target.value ? new Date(e.target.value).toISOString() : "",
-              })
-            }
-            disabled={disabled}
-            className="w-full px-3 py-2 rounded-md border border-input bg-background text-foreground text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50"
-          />
-        </div>
+        {/* Start Date & Time */}
+        <DateTimeSelector
+          dateId="event-start-time"
+          timeId="event-start-clock"
+          dateLabel="Start Date"
+          timeLabel="Start Time"
+          ariaLabel="Start Time"
+          value={formatDatetimeForInput(fields.start_at)}
+          onChange={handleStartChange}
+          hideTime={fields.all_day}
+          required
+          disabled={disabled}
+          defaultTime="09:00"
+        />
 
-        {/* End Date */}
-        <div className="space-y-1.5">
-          <label htmlFor="event-end-time" className="font-medium text-foreground block">
-            End Time (optional)
-          </label>
-          <input
-            id="event-end-time"
-            type="datetime-local"
-            value={formatDatetimeForInput(fields.end_at)}
-            onChange={(e) =>
-              onChange({
-                ...fields,
-                end_at: e.target.value ? new Date(e.target.value).toISOString() : null,
-              })
-            }
-            disabled={disabled}
-            className="w-full px-3 py-2 rounded-md border border-input bg-background text-foreground text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50"
-          />
-        </div>
+        {/* End Date & Time */}
+        <DateTimeSelector
+          dateId="event-end-time"
+          timeId="event-end-clock"
+          dateLabel="End Date"
+          timeLabel="End Time (optional)"
+          ariaLabel="End Time (optional)"
+          value={formatDatetimeForInput(fields.end_at)}
+          onChange={handleEndChange}
+          hideTime={fields.all_day}
+          disabled={disabled}
+          defaultTime="10:00"
+        />
       </div>
 
       {error && <p className="text-[11px] text-destructive">{error}</p>}

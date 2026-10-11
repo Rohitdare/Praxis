@@ -495,12 +495,15 @@ client/types from FastAPI OpenAPI. Do not hand-maintain shared types.
 -   Metrics: capture success, sync failures, AI failures, metadata
     failures, API latency.
 
-## 14. ADRs
+## 14. Architecture Decision Records (ADRs)
+
+Detailed records with trade-off analysis, accepted consequences, and revisit triggers are maintained in [`docs/adrs/`](./adrs/README.md).
+An interactive visual architecture diagram is available at [`.archify/architecture-praxis/praxis-architecture.html`](../.archify/architecture-praxis/praxis-architecture.html).
 
   -----------------------------------------------------------------------
   ADR                     Decision                Consequence
   ----------------------- ----------------------- -----------------------
-  ADR-01                  Direct Supabase data    RLS is primary data
+  [ADR-01](./adrs/adr-001-direct-supabase-rls.md) Direct Supabase data   RLS is primary data
                           access                  boundary
 
   ADR-02                  Capture-only offline    Avoids complex offline

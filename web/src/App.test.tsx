@@ -24,7 +24,7 @@ describe("App Root", () => {
   it("renders the unauthenticated sign-in view at startup", async () => {
     render(<App />)
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: "Personal Memory" })).toBeInTheDocument()
+      expect(screen.getByRole("heading", { name: "Praxis" })).toBeInTheDocument()
     }, { timeout: 4000 })
     expect(screen.getByRole("button", { name: "Continue with Google" })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Sign in" })).toBeInTheDocument()

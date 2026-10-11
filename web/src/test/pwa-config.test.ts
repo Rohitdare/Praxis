@@ -12,8 +12,8 @@ describe("Phase 1A: PWA Configuration & Build Verification", () => {
     expect(fs.existsSync(swPath)).toBe(true)
 
     const manifestContent = JSON.parse(fs.readFileSync(manifestPath, "utf-8"))
-    expect(manifestContent.name).toBe("Personal Memory")
-    expect(manifestContent.short_name).toBe("Memory")
+    expect(manifestContent.name).toBe("Praxis")
+    expect(manifestContent.short_name).toBe("Praxis")
     expect(manifestContent.display).toBe("standalone")
     expect(manifestContent.start_url).toBe("/")
   })

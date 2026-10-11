@@ -77,13 +77,20 @@ export function filterInboxItems(items: InboxItem[], filter: InboxFilterType): I
  * Counts items in each category for filter badges.
  */
 export function countInboxItemsByFilter(items: InboxItem[]): Record<InboxFilterType, number> {
-  return {
+  const counts: Record<InboxFilterType, number> = {
     all: items.length,
-    resource: items.filter((i) => i.type === "resource").length,
-    idea: items.filter((i) => i.type === "idea" || i.type === "note").length,
-    task: items.filter((i) => i.type === "task").length,
-    event: items.filter((i) => i.type === "event").length,
+    resource: 0,
+    idea: 0,
+    task: 0,
+    event: 0,
   }
+  for (const item of items) {
+    if (item.type === "resource") counts.resource++
+    else if (item.type === "idea" || item.type === "note") counts.idea++
+    else if (item.type === "task") counts.task++
+    else if (item.type === "event") counts.event++
+  }
+  return counts
 }
 
 /**

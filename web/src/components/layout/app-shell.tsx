@@ -1,22 +1,22 @@
-import { NavLink, Outlet, useNavigate } from "react-router-dom"
-import { Calendar, FileText, Inbox, LogOut, PenLine, Settings } from "lucide-react"
-import { useAuth } from "@/lib/auth/auth-context"
-import { Button } from "@/components/ui/button"
+import { NavLink, Outlet } from "react-router-dom"
+import { Calendar, FileText, Inbox, PenLine, Settings } from "lucide-react"
 import { SyncIndicator } from "@/components/sync/sync-indicator"
 import { ThemeToggle } from "@/components/theme/theme-toggle"
 import { PraxisLogo } from "@/components/branding/praxis-logo"
+import { Clock } from "@/components/ui/clock"
 
 export function AppShell() {
-  const { signOut } = useAuth()
-  const navigate = useNavigate()
-
-  const handleSignOut = async () => {
-    await signOut()
-    navigate("/auth", { replace: true })
-  }
-
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col font-sans transition-colors duration-150">
+      {/* =========================================================================
+          TOP-LEFT FLOATING CLOCK WIDGET (>= md)
+          A minimalist digital clock positioned in the top-left corner,
+          aligned with the floating navbar capsule.
+         ========================================================================= */}
+      <div className="hidden md:flex fixed top-3.5 left-4 lg:left-6 z-40 items-center pointer-events-auto">
+        <Clock />
+      </div>
+
       {/* =========================================================================
           DESKTOP FOCUS LENS FLOATING CAPSULE NAVBAR (>= md)
           Inspired by Framer Focus Lens component: compact floating capsule,
@@ -32,10 +32,10 @@ export function AppShell() {
           <NavLink
             to="/capture"
             className="flex items-center gap-2 pl-1.5 pr-2.5 py-0.5 text-xs font-heading font-extrabold tracking-tight text-foreground hover:opacity-85 transition-opacity select-none group"
-            aria-label="Personal Memory Home"
+            aria-label="Praxis Home"
           >
             <PraxisLogo variant="icon" size="sm" aria-hidden="true" />
-            <span className="font-heading font-extrabold tracking-tight">Personal Memory</span>
+            <span className="font-heading font-extrabold tracking-tight text-sm">Praxis</span>
           </NavLink>
 
           {/* Subtle Divider */}
@@ -96,7 +96,7 @@ export function AppShell() {
           {/* Subtle Divider */}
           <div className="h-4 w-px bg-border/70 shrink-0" aria-hidden="true" />
 
-          {/* Right Control Group: Sync, Theme Toggle, Settings, Sign Out */}
+          {/* Right Control Group: Sync, Theme Toggle, Settings (Sign out moved to Settings) */}
           <div className="flex items-center gap-1.5">
             <SyncIndicator />
 
@@ -116,48 +116,31 @@ export function AppShell() {
               <Settings className="size-3.5" aria-hidden="true" />
               <span>Settings</span>
             </NavLink>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleSignOut}
-              className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full hover:bg-muted/60"
-              aria-label="Sign out"
-            >
-              <LogOut className="size-3.5" aria-hidden="true" />
-              <span>Sign out</span>
-            </Button>
           </div>
         </header>
       </div>
 
       {/* =========================================================================
           MOBILE COMPACT TOP HEADER (< md)
-          Clean floating top capsule with brand, sync status, theme toggle & sign out.
+          Clean floating top capsule with brand, sync status, and theme toggle.
          ========================================================================= */}
       <div className="md:hidden sticky top-2 z-40 px-3 w-full">
         <header className="flex items-center justify-between px-3.5 py-2 rounded-full border border-border/80 bg-background/90 dark:bg-card/90 backdrop-blur-md shadow-xs transition-all">
-          <NavLink
-            to="/capture"
-            className="flex items-center gap-1.5 pl-1 text-xs font-heading font-extrabold tracking-tight text-foreground select-none"
-            aria-label="Personal Memory Home"
-          >
-            <PraxisLogo variant="icon" size="xs" aria-hidden="true" />
-            <span className="font-heading font-bold text-xs tracking-tight">Praxis</span>
-          </NavLink>
+          <div className="flex items-center gap-2">
+            <NavLink
+              to="/capture"
+              className="flex items-center gap-1.5 pl-1 text-xs font-heading font-extrabold tracking-tight text-foreground select-none"
+              aria-label="Praxis Home"
+            >
+              <PraxisLogo variant="icon" size="xs" aria-hidden="true" />
+              <span className="font-heading font-bold text-xs tracking-tight">Praxis</span>
+            </NavLink>
+            <Clock compact showDate={false} className="py-0.5 px-2 text-[10px]" />
+          </div>
 
           <div className="flex items-center gap-1">
             <SyncIndicator />
             <ThemeToggle className="size-7" />
-            <button
-              type="button"
-              onClick={handleSignOut}
-              className="p-1.5 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted/60 active:bg-muted transition-colors"
-              aria-label="Sign out"
-              title="Sign out"
-            >
-              <LogOut className="size-3.5" aria-hidden="true" />
-            </button>
           </div>
         </header>
       </div>

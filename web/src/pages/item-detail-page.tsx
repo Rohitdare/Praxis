@@ -147,13 +147,13 @@ export function ItemDetailPage() {
       const updated = await updateItemClassification(id, user.id, payload)
       setRecord(updated)
       setSaveSuccess(true)
-      setTimeout(() => setSaveSuccess(false), 3000)
+      navigate("/inbox")
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : "Failed to save changes")
     } finally {
       setIsSaving(false)
     }
-  }, [id, user, isSaving, isOnline, title, content, type, taskFields, resourceFields, eventFields])
+  }, [id, user, isSaving, isOnline, title, content, type, taskFields, resourceFields, eventFields, navigate])
 
   // 3. Keyboard shortcuts: Esc to back, Cmd/Ctrl+Enter to save
   React.useEffect(() => {
@@ -236,21 +236,6 @@ export function ItemDetailPage() {
               <CheckCircle2 className="size-3.5" /> Saved
             </span>
           )}
-          <Button
-            type="button"
-            size="sm"
-            onClick={handleSave}
-            disabled={isSaving || !isOnline}
-            className="text-xs inline-flex items-center gap-1.5 shadow-2xs hover:shadow-xs rounded-lg font-medium"
-            aria-label="Save changes"
-          >
-            {isSaving ? (
-              <Loader2 className="size-3.5 animate-spin" />
-            ) : (
-              <Save className="size-3.5" />
-            )}
-            {isSaving ? "Saving..." : "Save Changes"}
-          </Button>
         </div>
       </header>
 
@@ -358,6 +343,42 @@ export function ItemDetailPage() {
             disabled={!isOnline || isSaving}
             className="w-full px-3.5 py-2.5 rounded-lg border border-input bg-card/60 text-xs md:text-sm leading-relaxed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-50 resize-y transition-all font-sans"
           />
+        </div>
+
+        {/* Dedicated Action Row below form fields */}
+        <div className="flex items-center justify-between gap-3 pt-4 border-t border-border/60">
+          <Button
+            asChild
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="text-xs text-muted-foreground hover:text-foreground rounded-lg"
+          >
+            <Link to="/inbox">Cancel</Link>
+          </Button>
+
+          <div className="flex items-center gap-2">
+            {saveSuccess && (
+              <span className="inline-flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium animate-in fade-in">
+                <CheckCircle2 className="size-3.5" /> Saved
+              </span>
+            )}
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleSave}
+              disabled={isSaving || !isOnline}
+              className="text-xs inline-flex items-center gap-1.5 shadow-2xs hover:shadow-xs rounded-lg font-medium"
+              aria-label="Save changes"
+            >
+              {isSaving ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <Save className="size-3.5" />
+              )}
+              {isSaving ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
         </div>
       </div>
 

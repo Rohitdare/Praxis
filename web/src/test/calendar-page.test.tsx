@@ -102,10 +102,14 @@ describe("CalendarPage Component", () => {
     fireEvent.change(titleInput, { target: { value: "Invalid Event" } })
 
     // Set end earlier than start
-    const startInput = screen.getByLabelText(/Start Date & Time/i)
-    const endInput = screen.getByLabelText(/End Date & Time/i)
-    fireEvent.change(startInput, { target: { value: "2026-10-15T14:00" } })
-    fireEvent.change(endInput, { target: { value: "2026-10-15T13:00" } })
+    const startDateInput = screen.getByLabelText(/Start Date/i)
+    const startTimeInput = screen.getByLabelText(/Start Time/i)
+    const endDateInput = screen.getByLabelText(/End Date/i)
+    const endTimeInput = screen.getByLabelText(/End Time/i)
+    fireEvent.change(startDateInput, { target: { value: "2026-10-15" } })
+    fireEvent.change(startTimeInput, { target: { value: "14:00" } })
+    fireEvent.change(endDateInput, { target: { value: "2026-10-15" } })
+    fireEvent.change(endTimeInput, { target: { value: "13:00" } })
 
     const saveBtn = screen.getByRole("button", { name: /Save Event/i })
     fireEvent.click(saveBtn)
@@ -130,5 +134,106 @@ describe("CalendarPage Component", () => {
 
     const createBtn = screen.getAllByRole("button", { name: /Create Event/i })[0]
     expect(createBtn).toBeDisabled()
+  })
+
+  it("creates event with title and description and adds it to calendar view", async () => {
+    render(<CalendarPage />)
+
+    await waitFor(() => {
+      expect(screen.getAllByRole("button", { name: /Create Event/i })[0]).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getAllByRole("button", { name: /Create Event/i })[0])
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText(/Planning session/i)).toBeInTheDocument()
+    })
+
+    const titleInput = screen.getByPlaceholderText(/Planning session/i)
+    fireEvent.change(titleInput, { target: { value: "Sprint Retro" } })
+
+    const descInput = screen.getByPlaceholderText(/Optional details or agenda/i)
+    fireEvent.change(descInput, { target: { value: "Discuss sprint velocity" } })
+
+    const saveBtn = screen.getByRole("button", { name: /Save Event/i })
+    fireEvent.click(saveBtn)
+
+    await waitFor(() => {
+      expect(calendarService.createCalendarEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: "test-user-uuid",
+          title: "Sprint Retro",
+          content: "Discuss sprint velocity",
+          itemId: expect.stringMatching(/^[0-9a-f-]{36}$/i),
+        })
+      )
+    })
+  })
+
+  it("keeps modal open with preserved inputs on failure and reuses stable itemId on retry", async () => {
+    let callCount = 0
+    let firstItemId = ""
+
+    vi.spyOn(calendarService, "createCalendarEvent").mockImplementation(async (params) => {
+      callCount++
+      if (callCount === 1) {
+        firstItemId = params.itemId!
+        throw new Error("Network blip: null value in column violates constraint")
+      }
+      return {
+        itemId: params.itemId!,
+        title: params.title,
+        content: params.content || null,
+        startAt: params.startAt,
+        endAt: params.endAt || null,
+        allDay: params.allDay || false,
+        status: "active",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }
+    })
+
+    render(<CalendarPage />)
+
+    await waitFor(() => {
+      expect(screen.getAllByRole("button", { name: /Create Event/i })[0]).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getAllByRole("button", { name: /Create Event/i })[0])
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText(/Planning session/i)).toBeInTheDocument()
+    })
+
+    const titleInput = screen.getByPlaceholderText(/Planning session/i)
+    fireEvent.change(titleInput, { target: { value: "Quarterly Review" } })
+
+    const descInput = screen.getByPlaceholderText(/Optional details or agenda/i)
+    fireEvent.change(descInput, { target: { value: "Review metrics" } })
+
+    const saveBtn = screen.getByRole("button", { name: /Save Event/i })
+    fireEvent.click(saveBtn)
+
+    // Should display error and preserve modal open with user inputs
+    await waitFor(() => {
+      expect(screen.getByText(/Network blip/i)).toBeInTheDocument()
+      expect(titleInput).toHaveValue("Quarterly Review")
+      expect(descInput).toHaveValue("Review metrics")
+    })
+
+    // Retry save
+    fireEvent.click(saveBtn)
+
+    await waitFor(() => {
+      expect(callCount).toBe(2)
+    })
+
+    // Verify retry sent the exact same stable itemId
+    expect(calendarService.createCalendarEvent).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        title: "Quarterly Review",
+        itemId: firstItemId,
+      })
+    )
   })
 })

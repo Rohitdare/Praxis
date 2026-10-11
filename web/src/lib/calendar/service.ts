@@ -1,3 +1,4 @@
+import { db } from "@/lib/db/index"
 import { supabase } from "@/lib/supabase/client"
 
 export interface CalendarEventRecord {
@@ -19,6 +20,7 @@ export interface CreateCalendarEventParams {
   startAt: string
   endAt?: string | null
   allDay?: boolean
+  itemId?: string
 }
 
 export interface UpdateCalendarEventParams {
@@ -28,6 +30,42 @@ export interface UpdateCalendarEventParams {
   startAt: string
   endAt?: string | null
   allDay?: boolean
+}
+
+interface CalendarQueryRow {
+  item_id: string
+  start_at: string
+  end_at: string | null
+  all_day: boolean | null
+  created_at: string
+  updated_at: string
+  items: {
+    title: string | null
+    content: string | null
+    status: string | null
+    deleted_at: string | null
+  } | null
+}
+
+interface ClassifyRpcEventResponse {
+  item?: {
+    id?: string
+    title?: string | null
+    content?: string | null
+    status?: string
+    created_at?: string
+    updated_at?: string
+  }
+  event?: {
+    start_at?: string
+    end_at?: string | null
+    all_day?: boolean
+  }
+  extension?: {
+    start_at?: string
+    end_at?: string | null
+    all_day?: boolean
+  }
 }
 
 const CACHE_KEY = "pm_cached_calendar_events"
@@ -93,7 +131,9 @@ export async function fetchCalendarEvents(userId: string): Promise<CalendarEvent
       throw new Error(`Failed to load events: ${error.message}`)
     }
 
-    const events: CalendarEventRecord[] = (data || []).map((row: any) => ({
+    const events: CalendarEventRecord[] = (
+      (data as unknown as CalendarQueryRow[]) || []
+    ).map((row) => ({
       itemId: row.item_id,
       title: row.items?.title || "Untitled Event",
       content: row.items?.content || null,
@@ -156,8 +196,11 @@ export async function createCalendarEvent(
     throw new Error("Event title cannot be empty")
   }
 
-  const { data, error } = await (supabase as any).rpc("classify_and_update_item", {
-    p_item_id: null,
+  // Reuse existing stable client UUID for retries, or generate new UUIDv4
+  const itemId = params.itemId || crypto.randomUUID()
+
+  const { data, error } = await supabase.rpc("classify_and_update_item", {
+    p_item_id: itemId,
     p_type: "event",
     p_title: params.title.trim(),
     p_content: params.content?.trim() || null,
@@ -174,27 +217,49 @@ export async function createCalendarEvent(
   })
 
   if (error) {
+    console.error("Failed to create calendar event via RPC:", error.message)
     throw new Error(`Failed to create calendar event: ${error.message}`)
   }
 
-  const createdItem = (data as any)?.item
-  const createdExt = (data as any)?.extension
+  const rpcData = data as ClassifyRpcEventResponse | null
+  const createdItem = rpcData?.item
+  const createdExt = rpcData?.event || rpcData?.extension
 
   const newRecord: CalendarEventRecord = {
-    itemId: createdItem?.id || (data as any)?.item_id,
+    itemId: createdItem?.id || itemId,
     title: params.title.trim(),
     content: params.content?.trim() || null,
     startAt: createdExt?.start_at || params.startAt,
-    endAt: createdExt?.end_at || params.endAt || null,
+    endAt: createdExt?.end_at !== undefined ? createdExt.end_at : params.endAt || null,
     allDay: createdExt?.all_day ?? params.allDay ?? false,
-    status: "active",
+    status: createdItem?.status || "active",
     createdAt: createdItem?.created_at || new Date().toISOString(),
     updatedAt: createdItem?.updated_at || new Date().toISOString(),
   }
 
-  // Update local cache
+  // Update Dexie local_items cache
+  try {
+    await db.local_items.put({
+      id: newRecord.itemId,
+      user_id: params.userId,
+      raw_input: params.title.trim(),
+      captured_at: newRecord.createdAt,
+      created_at: newRecord.createdAt,
+      updated_at: newRecord.updatedAt,
+      deleted_at: null,
+      type: "event",
+      status: "active",
+      title: newRecord.title,
+      content: newRecord.content,
+      synced: true,
+    })
+  } catch {
+    // Non-fatal if local db is unavailable
+  }
+
+  // Update local cache idempotently
   const cached = getCachedEvents()
-  setCachedEvents([...cached, newRecord])
+  setCachedEvents([...cached.filter((e) => e.itemId !== newRecord.itemId), newRecord])
 
   return newRecord
 }
@@ -221,7 +286,7 @@ export async function updateCalendarEvent(
     throw new Error("Event title cannot be empty")
   }
 
-  const { error } = await (supabase as any).rpc("classify_and_update_item", {
+  const { error } = await supabase.rpc("classify_and_update_item", {
     p_item_id: params.itemId,
     p_type: "event",
     p_title: params.title.trim(),
@@ -239,6 +304,7 @@ export async function updateCalendarEvent(
   })
 
   if (error) {
+    console.error("Failed to update calendar event via RPC:", error.message)
     throw new Error(`Failed to update calendar event: ${error.message}`)
   }
 
@@ -252,6 +318,20 @@ export async function updateCalendarEvent(
     status: "active",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
+  }
+
+  // Update Dexie local_items cache if present
+  try {
+    const existing = await db.local_items.get(params.itemId)
+    if (existing) {
+      await db.local_items.update(params.itemId, {
+        title: updatedRecord.title,
+        content: updatedRecord.content,
+        updated_at: updatedRecord.updatedAt,
+      })
+    }
+  } catch {
+    // Non-fatal
   }
 
   // Update local cache
@@ -278,7 +358,21 @@ export async function deleteCalendarEvent(itemId: string): Promise<void> {
     .eq("id", itemId)
 
   if (error) {
+    console.error("Failed to delete event:", error.message)
     throw new Error(`Failed to delete event: ${error.message}`)
+  }
+
+  // Update Dexie local_items cache if present
+  try {
+    const existing = await db.local_items.get(itemId)
+    if (existing) {
+      await db.local_items.update(itemId, {
+        deleted_at: now,
+        updated_at: now,
+      })
+    }
+  } catch {
+    // Non-fatal
   }
 
   // Remove from cache

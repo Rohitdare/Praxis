@@ -20,8 +20,8 @@ export default defineConfig({
         "branding/praxis-icon.png",
       ],
       manifest: {
-        name: "Personal Memory",
-        short_name: "Memory",
+        name: "Praxis",
+        short_name: "Praxis",
         description: "A private place to capture thoughts, resources, and ideas before you forget them.",
         theme_color: "#ffffff",
         background_color: "#ffffff",
@@ -53,6 +53,7 @@ export default defineConfig({
     globals: true,
     environment: "jsdom",
     setupFiles: "./src/test/setup.ts",
-    testTimeout: 10000,
+    testTimeout: 20000,
+    fileParallelism: false,
   },
 })

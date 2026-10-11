@@ -342,7 +342,25 @@ export interface Database {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      classify_and_update_item: {
+        Args: {
+          p_item_id: string
+          p_type: string
+          p_title?: string | null
+          p_content?: string | null
+          p_status?: string | null
+          p_due_at?: string | null
+          p_priority?: string | null
+          p_completed_at?: string | null
+          p_url?: string | null
+          p_domain?: string | null
+          p_resource_status?: string | null
+          p_start_at?: string | null
+          p_end_at?: string | null
+          p_all_day?: boolean | null
+        }
+        Returns: Json
+      }
     }
     Enums: {
       item_type: ItemType

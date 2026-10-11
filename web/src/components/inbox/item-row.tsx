@@ -9,7 +9,7 @@ import {
   Link2,
   Trash2,
 } from "lucide-react"
-import { cn } from "cn"
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import type { InboxItem } from "@/lib/inbox/service"
 import { formatRelativeTime } from "@/lib/inbox/service"

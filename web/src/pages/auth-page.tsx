@@ -157,10 +157,10 @@ export function AuthPage() {
       </div>
       <div className="w-full max-w-sm mx-auto space-y-6">
         <header className="space-y-3 text-center flex flex-col items-center">
-          <PraxisLogo variant="full" size="lg" className="mx-auto" />
+          <PraxisLogo variant="icon" size="lg" className="mx-auto" />
           <div className="space-y-1">
             <h1 className="font-heading font-extrabold text-2xl md:text-3xl tracking-tight text-foreground">
-              Personal Memory
+              Praxis
             </h1>
             <p className="text-xs md:text-sm text-muted-foreground leading-relaxed">
               {isRecoveryMode
@@ -169,7 +169,7 @@ export function AuthPage() {
                 ? "Reset your password with your email address."
                 : mode === "signup"
                 ? "Create your private account to start capturing."
-                : "Your private place to capture things before you forget them."}
+                : "Your private place to capture thoughts, resources, and ideas."}
             </p>
           </div>
         </header>
@@ -180,12 +180,34 @@ export function AuthPage() {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full h-10 font-medium justify-center"
+                className="w-full h-10 font-medium justify-center gap-2.5"
                 onClick={handleGoogleSignIn}
                 disabled={isPending}
                 aria-label="Continue with Google"
               >
-                {isGoogleLoading ? "Connecting to Google..." : "Continue with Google"}
+                <svg
+                  className="size-4 shrink-0"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    fill="#4285F4"
+                    d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.02h3.87c2.26-2.09 3.675-5.17 3.675-9.12z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.87-3.02c-1.08.72-2.45 1.16-4.06 1.16-3.13 0-5.78-2.11-6.73-4.96H1.27v3.12C3.26 21.36 7.35 24 12 24z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.27 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.61H1.27C.46 8.23 0 10.06 0 12s.46 3.77 1.27 5.39l4-3.12z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 4.77c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.35 0 3.26 2.64 1.27 6.61l4 3.12c.95-2.85 3.6-4.96 6.73-4.96z"
+                  />
+                </svg>
+                <span>{isGoogleLoading ? "Connecting to Google..." : "Continue with Google"}</span>
               </Button>
 
               <div className="relative flex items-center justify-center">

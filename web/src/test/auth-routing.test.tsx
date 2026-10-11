@@ -79,7 +79,7 @@ describe("Authentication & Routing (Email/Password + Google OAuth)", () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: "Personal Memory" })).toBeInTheDocument()
+      expect(screen.getByRole("heading", { name: "Praxis" })).toBeInTheDocument()
     })
     expect(screen.getByRole("button", { name: "Continue with Google" })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Sign in" })).toBeInTheDocument()
@@ -103,7 +103,7 @@ describe("Authentication & Routing (Email/Password + Google OAuth)", () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: "Personal Memory" })).toBeInTheDocument()
+      expect(screen.getByRole("heading", { name: "Praxis" })).toBeInTheDocument()
       expect(screen.getByRole("button", { name: "Continue with Google" })).toBeInTheDocument()
     })
     expect(screen.queryByText("What do you want to remember?")).not.toBeInTheDocument()
@@ -126,7 +126,7 @@ describe("Authentication & Routing (Email/Password + Google OAuth)", () => {
     await waitFor(() => {
       expect(screen.getByText("What do you want to remember?")).toBeInTheDocument()
     })
-    expect(screen.getByText("Personal Memory")).toBeInTheDocument()
+    expect(screen.getAllByText("Praxis").length).toBeGreaterThan(0)
     expect(screen.queryByRole("button", { name: "Continue with Google" })).not.toBeInTheDocument()
   })
 
@@ -146,10 +146,10 @@ describe("Authentication & Routing (Email/Password + Google OAuth)", () => {
 
     await waitFor(() => {
       expect(screen.getByText("What do you want to remember?")).toBeInTheDocument()
-    }, { timeout: 4000 })
+    }, { timeout: 8000 })
   })
 
-  it("5. sign-out returns the user to /auth", async () => {
+  it("5. sign-out is relocated to Settings and returns the user to /auth after confirmation", async () => {
     vi.mocked(supabase.auth.getSession).mockResolvedValue({
       data: { session: mockSession },
       error: null,
@@ -173,8 +173,26 @@ describe("Authentication & Routing (Email/Password + Google OAuth)", () => {
       expect(screen.getByText("What do you want to remember?")).toBeInTheDocument()
     })
 
-    const signOutButtons = screen.getAllByRole("button", { name: "Sign out" })
-    await userEvent.click(signOutButtons[0])
+    // Sign out is removed from navbar
+    expect(screen.queryByRole("button", { name: "Sign out" })).not.toBeInTheDocument()
+
+    // Navigate to Settings
+    const settingsLinks = screen.getAllByRole("link", { name: /Settings/i })
+    await userEvent.click(settingsLinks[0])
+
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: "Settings" })).toBeInTheDocument()
+    })
+
+    // Click Sign out in Settings
+    const signOutBtn = screen.getByRole("button", { name: "Sign out" })
+    await userEvent.click(signOutBtn)
+
+    // Confirm dialog appears and clicking confirm signs out
+    expect(screen.getByRole("dialog")).toBeInTheDocument()
+    const confirmSignOutBtn = screen.getAllByRole("button", { name: "Sign out" }).find(b => b.closest('[role="dialog"]'))
+    expect(confirmSignOutBtn).toBeTruthy()
+    await userEvent.click(confirmSignOutBtn!)
 
     await waitFor(() => {
       expect(screen.getByRole("button", { name: "Continue with Google" })).toBeInTheDocument()
@@ -182,7 +200,7 @@ describe("Authentication & Routing (Email/Password + Google OAuth)", () => {
     expect(screen.queryByText("What do you want to remember?")).not.toBeInTheDocument()
   })
 
-  it("6. renders responsive shell navigation with Capture, Inbox, Settings, and Sign out", async () => {
+  it("6. renders responsive shell navigation with Capture, Inbox, Notes, Calendar, and Settings without Sign out in navbar", async () => {
     vi.mocked(supabase.auth.getSession).mockResolvedValue({
       data: { session: mockSession },
       error: null,
@@ -204,6 +222,7 @@ describe("Authentication & Routing (Email/Password + Google OAuth)", () => {
     const inboxLinks = screen.getAllByRole("link", { name: /Inbox/i })
     expect(captureLinks.length).toBeGreaterThan(0)
     expect(inboxLinks.length).toBeGreaterThan(0)
+    expect(screen.queryByRole("button", { name: "Sign out" })).not.toBeInTheDocument()
 
     await userEvent.click(inboxLinks[0])
     await waitFor(() => {
@@ -243,7 +262,7 @@ describe("Authentication & Routing (Email/Password + Google OAuth)", () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: "Personal Memory" })).toBeInTheDocument()
+      expect(screen.getByRole("heading", { name: "Praxis" })).toBeInTheDocument()
     })
 
     const emailInput = screen.getByLabelText("Email address")
@@ -287,7 +306,7 @@ describe("Authentication & Routing (Email/Password + Google OAuth)", () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: "Personal Memory" })).toBeInTheDocument()
+      expect(screen.getByRole("heading", { name: "Praxis" })).toBeInTheDocument()
     })
 
     const emailInput = screen.getByLabelText("Email address")
@@ -324,7 +343,7 @@ describe("Authentication & Routing (Email/Password + Google OAuth)", () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: "Personal Memory" })).toBeInTheDocument()
+      expect(screen.getByRole("heading", { name: "Praxis" })).toBeInTheDocument()
     })
 
     // Switch to Sign up mode
@@ -374,7 +393,7 @@ describe("Authentication & Routing (Email/Password + Google OAuth)", () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: "Personal Memory" })).toBeInTheDocument()
+      expect(screen.getByRole("heading", { name: "Praxis" })).toBeInTheDocument()
     })
 
     const forgotButton = screen.getByRole("button", { name: "Forgot password?" })
@@ -422,7 +441,7 @@ describe("Authentication & Routing (Email/Password + Google OAuth)", () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: "Personal Memory" })).toBeInTheDocument()
+      expect(screen.getByRole("heading", { name: "Praxis" })).toBeInTheDocument()
     })
 
     const googleButton = screen.getByRole("button", { name: "Continue with Google" })

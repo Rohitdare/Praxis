@@ -1,5 +1,6 @@
 import type { TaskFields } from "@/lib/items/types"
 import type { TaskPriority } from "@/lib/supabase/database.types"
+import { DateTimeSelector } from "@/components/ui/date-time-picker"
 
 interface TaskFieldsProps {
   fields: TaskFields
@@ -52,20 +53,18 @@ export function TaskFieldsComponent({ fields, onChange, disabled }: TaskFieldsPr
   return (
     <div className="p-4 rounded-lg border border-border/80 bg-muted/20 space-y-4 text-xs">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Due Date */}
-        <div className="space-y-1.5">
-          <label htmlFor="task-due-date" className="font-medium text-foreground block">
-            Due Date & Time
-          </label>
-          <input
-            id="task-due-date"
-            type="datetime-local"
-            value={formatDatetimeForInput(fields.due_at)}
-            onChange={(e) => handleDateChange(e.target.value)}
-            disabled={disabled}
-            className="w-full px-3 py-2 rounded-md border border-input bg-background text-foreground text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50"
-          />
-        </div>
+        {/* Due Date & Time */}
+        <DateTimeSelector
+          dateId="task-due-date"
+          timeId="task-due-time"
+          dateLabel="Due Date"
+          timeLabel="Due Time"
+          ariaLabel="Due Date & Time"
+          value={formatDatetimeForInput(fields.due_at)}
+          onChange={handleDateChange}
+          disabled={disabled}
+          defaultTime="17:00"
+        />
 
         {/* Priority Selector */}
         <div className="space-y-1.5">

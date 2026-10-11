@@ -108,7 +108,7 @@ describe("Phase 2: ItemDetailPage Component", () => {
     ).toBeInTheDocument()
   })
 
-  it("3. saving form triggers updateItemClassification service and displays success indicator", async () => {
+  it("3. saving form triggers updateItemClassification service and navigates back to /inbox", async () => {
     vi.spyOn(itemService, "fetchItemDetail").mockResolvedValue(sampleItemDetail)
     const updateSpy = vi.spyOn(itemService, "updateItemClassification").mockResolvedValue({
       ...sampleItemDetail,
@@ -123,6 +123,7 @@ describe("Phase 2: ItemDetailPage Component", () => {
       <MemoryRouter initialEntries={["/items/item-abc-123"]}>
         <Routes>
           <Route path="/items/:id" element={<ItemDetailPage />} />
+          <Route path="/inbox" element={<div>Inbox View</div>} />
         </Routes>
       </MemoryRouter>
     )
@@ -136,7 +137,7 @@ describe("Phase 2: ItemDetailPage Component", () => {
     await user.clear(titleInput)
     await user.type(titleInput, "New Updated Title")
 
-    // Click Save Changes
+    // Click Save Changes in the bottom action row
     const saveButton = screen.getByRole("button", { name: /Save changes/i })
     await user.click(saveButton)
 
@@ -149,9 +150,8 @@ describe("Phase 2: ItemDetailPage Component", () => {
           type: "note",
         })
       )
+      expect(screen.getByText("Inbox View")).toBeInTheDocument()
     })
-
-    expect(screen.getByText(/Saved/i)).toBeInTheDocument()
   })
 
   it("4. renders 404 empty state when item does not exist or permission denied", async () => {
