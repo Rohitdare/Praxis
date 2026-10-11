@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from "react-router-dom"
-import { Calendar, FileText, Inbox, PenLine, Settings } from "lucide-react"
+import { Calendar, CheckSquare, FileText, Inbox, PenLine, Settings } from "lucide-react"
 import { SyncIndicator } from "@/components/sync/sync-indicator"
 import { ThemeToggle } from "@/components/theme/theme-toggle"
 import { PraxisLogo } from "@/components/branding/praxis-logo"
@@ -66,6 +66,18 @@ export function AppShell() {
               }
             >
               Inbox
+            </NavLink>
+            <NavLink
+              to="/planner"
+              className={({ isActive }) =>
+                `px-3 py-1.5 text-xs font-medium rounded-full transition-all outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                  isActive
+                    ? "bg-secondary text-foreground font-semibold shadow-2xs"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                }`
+              }
+            >
+              Planner
             </NavLink>
             <NavLink
               to="/notes"
@@ -187,6 +199,20 @@ export function AppShell() {
         >
           <Inbox className="size-4 mb-0.5" aria-hidden="true" />
           <span>Inbox</span>
+        </NavLink>
+
+        <NavLink
+          to="/planner"
+          className={({ isActive }) =>
+            `flex flex-col items-center justify-center min-h-[44px] min-w-[48px] px-2.5 py-1 rounded-full text-[10px] font-medium transition-all ${
+              isActive
+                ? "bg-secondary text-foreground font-semibold shadow-2xs"
+                : "text-muted-foreground/80 hover:text-foreground"
+            }`
+          }
+        >
+          <CheckSquare className="size-4 mb-0.5" aria-hidden="true" />
+          <span>Planner</span>
         </NavLink>
 
         <NavLink

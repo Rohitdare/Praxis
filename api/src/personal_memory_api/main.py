@@ -10,9 +10,17 @@ app = FastAPI(
     version="0.1.0",
 )
 
-allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:3000").split(
-    ","
-)
+DEFAULT_ALLOWED_ORIGINS = [
+    "https://praxis-memo.vercel.app",
+    "http://localhost:5173",
+    "http://localhost:3000",
+]
+
+raw_origins = os.getenv("ALLOWED_ORIGINS")
+if raw_origins:
+    allowed_origins = [origin.strip() for origin in raw_origins.split(",") if origin.strip()]
+else:
+    allowed_origins = DEFAULT_ALLOWED_ORIGINS
 
 app.add_middleware(
     CORSMiddleware,

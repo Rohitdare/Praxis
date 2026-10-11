@@ -12,6 +12,7 @@ import { CapturePage } from "@/pages/capture-page"
 import { InboxPage } from "@/pages/inbox-page"
 
 const NotesPage = React.lazy(() => import("@/pages/notes-page").then((m) => ({ default: m.NotesPage })))
+const PlannerPage = React.lazy(() => import("@/pages/planner-page").then((m) => ({ default: m.PlannerPage })))
 const CalendarPage = React.lazy(() => import("@/pages/calendar-page").then((m) => ({ default: m.CalendarPage })))
 const ItemDetailPage = React.lazy(() => import("@/pages/item-detail-page").then((m) => ({ default: m.ItemDetailPage })))
 const SettingsPage = React.lazy(() => import("@/pages/settings-page").then((m) => ({ default: m.SettingsPage })))
@@ -43,6 +44,7 @@ export function AppRoutes() {
             <Route path="/" element={<Navigate to="/capture" replace />} />
             <Route path="/capture" element={<CapturePage />} />
             <Route path="/inbox" element={<InboxPage />} />
+            <Route path="/planner" element={<PlannerPage />} />
             <Route path="/notes" element={<NotesPage />} />
             <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/items/:id" element={<ItemDetailPage />} />

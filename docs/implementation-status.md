@@ -1,8 +1,8 @@
 # Personal Memory App — Implementation Status
 
-**Status:** Official Praxis Logo (ALT 3 / MODERN) Integration Completed
-**Version:** 1.8
-**Date:** 2026-10-11
+**Status:** Daily To-Do Planner & Weekly Productivity Statistics Completed
+**Version:** 1.9
+**Date:** 2026-10-12
 **Assessed by:** Senior Frontend Engineer & UI/UX Designer
 
 ---
@@ -666,12 +666,32 @@ Per PRD s8: Do not start Phase 2 until Phase 1 has been used for real for severa
   - Route Loading States (`protected-route.tsx`, `public-route.tsx`): Subtle `PraxisLogo variant="icon"` with gentle pulsing animation.
   - Browser Metadata (`index.html`): SVG favicon link `/favicon.svg`, PNG fallback, and Apple touch icon.
   - PWA Configuration (`vite.config.ts`): Registered branding assets in `includeAssets` for offline caching.
+### Deliverable 6 — Daily To-Do Planner & Weekly Productivity Statistics
+- **Architecture & Data Model**:
+  - Leveraged existing `public.items` (`type = 'task'`) and `public.tasks` (`due_at`, `priority`, `completed_at`) without duplicate tables.
+  - Added migration `20261012000000_tasks_completed_idx.sql` indexing `public.tasks(user_id, completed_at)` for sub-millisecond weekly aggregations.
+  - Offline-first resilience via Dexie `local_items` fallback.
+- **Core Daily Planner (`web/src/pages/planner-page.tsx`)**:
+  - `TaskQuickAdd` inline form with priority cycling (`normal`, `high`, `low`) and time setting.
+  - `TaskItemRow` with accessible toggle checkbox, priority badges, detail routing, and carry-forward actions.
+  - `RolloverBanner` identifying overdue tasks from previous days with one-click "Carry all to today".
+  - Day navigation with previous/next day, quick "Today" shortcut, and completion progress counter.
+- **Weekly Productivity Dashboard**:
+  - Strict Monday 00:00:00 to Sunday 23:59:59 week boundaries via pure math utilities in `stats.ts`.
+  - Four key metric cards: Planned tasks, Completed tasks, Completion rate (0-100%), and Outstanding/overdue tasks.
+  - Accessible CSS/SVG 7-day activity bar chart (`WeeklyBarChart`) and detailed daily breakdown table.
+  - Week navigation with previous/next week and "This Week" shortcuts.
+- **Application Integration**:
+  - Registered `/planner` route with lazy-loading in `App.tsx`.
+  - Added Planner (`CheckSquare`) navigation link in desktop floating capsule and mobile tab bar in `app-shell.tsx`.
 - **Verification**:
-  - Vitest: 22/22 test files passing (155/155 tests, including 5 dedicated tests in `praxis-logo.test.tsx`).
+  - Automated tests: 21 tests across 3 new test suites (`planner-stats.test.ts`, `planner-service.test.ts`, `planner-page.test.tsx`) passing 100%.
+  - Total web tests: 28 test suites, 199/199 passing.
   - TypeScript: 0 errors (`tsc -b`).
-  - Oxlint: 0 errors.
-  - Production Build: Successfully generated `dist/` with PWA manifest and service worker.
-  - Backend: 6/6 pytest tests passing; 0 ruff errors.
+  - Linter: 0 errors.
+  - Production Build: Successfully generated `dist/` with PWA precaching.
+  - Backend: 6/6 pytest passing.
+
 
 
 
