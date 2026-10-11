@@ -15,9 +15,20 @@ dist-ssr
 .vite
 *.tsbuildinfo
 
-# Test & coverage outputs
+# Test & coverage outputs (unit test sources *.test.ts and *.test.tsx remain tracked)
 coverage
 .nyc_output
+test-results
+playwright-report
+vitest-report
+.playwright
+
+# Temporary directories & caches
+.temp
+.cache
+tmp
+temp
+scratch
 
 # Environment files
 .env

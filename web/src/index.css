@@ -137,6 +137,18 @@
   }
 }
 
+@layer utilities {
+  .safe-area-pb {
+    padding-bottom: max(0.375rem, env(safe-area-inset-bottom, 0.375rem));
+  }
+  .safe-area-pt {
+    padding-top: max(0.5rem, env(safe-area-inset-top, 0.5rem));
+  }
+  .safe-area-mb {
+    margin-bottom: max(0.75rem, env(safe-area-inset-bottom, 0.75rem));
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   ::before,

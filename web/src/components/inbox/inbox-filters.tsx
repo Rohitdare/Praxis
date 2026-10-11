@@ -30,7 +30,10 @@ export function InboxFilters({
   return (
     <nav
       aria-label="Filter inbox items"
-      className={cn("flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none", className)}
+      className={cn(
+        "flex items-center gap-1.5 overflow-x-auto pb-1.5 pt-0.5 px-0.5 -mx-0.5 touch-pan-x overscroll-x-contain scrollbar-none",
+        className
+      )}
     >
       {FILTER_OPTIONS.map((option) => {
         const isActive = currentFilter === option.id
@@ -45,7 +48,7 @@ export function InboxFilters({
             aria-controls="inbox-item-list"
             onClick={() => onFilterChange(option.id)}
             className={cn(
-              "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap outline-none",
+              "inline-flex items-center gap-1.5 px-3 py-1.5 shrink-0 min-h-[36px] rounded-full text-xs font-medium transition-all whitespace-nowrap outline-none",
               "focus-visible:ring-2 focus-visible:ring-ring/50",
               isActive
                 ? "bg-secondary text-secondary-foreground font-semibold shadow-2xs border border-border/80"

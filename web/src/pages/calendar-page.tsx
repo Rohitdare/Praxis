@@ -306,23 +306,23 @@ export function CalendarPage() {
       )}
 
       {/* Page Header and Month Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-3 border-b border-border/50">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 pb-3 border-b border-border/50">
         <div>
           <h1 className="font-heading font-extrabold text-2xl md:text-3xl tracking-tight text-foreground flex items-center gap-2.5">
-            <CalendarIcon className="size-5 text-muted-foreground" />
+            <CalendarIcon className="size-5 text-muted-foreground shrink-0" />
             Calendar
           </h1>
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-xs text-muted-foreground mt-0.5">
             View and organize events ({timezone})
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-between sm:justify-end w-full sm:w-auto">
           <Button
             variant="outline"
             size="sm"
             onClick={handleToday}
-            className="text-xs font-medium rounded-lg h-8 px-2.5 border-border/80"
+            className="text-xs font-medium rounded-lg h-8 px-2.5 border-border/80 min-h-[32px]"
           >
             Today
           </Button>
@@ -331,18 +331,18 @@ export function CalendarPage() {
               type="button"
               onClick={handlePrevMonth}
               aria-label="Previous month"
-              className="p-1.5 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+              className="p-2 sm:p-1.5 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors min-h-[32px] min-w-[32px] flex items-center justify-center"
             >
               <ChevronLeft className="size-4" />
             </button>
-            <span className="font-heading font-bold px-3 py-1 text-xs select-none min-w-[130px] text-center text-foreground">
+            <span className="font-heading font-bold px-2 sm:px-3 py-1 text-xs select-none min-w-[100px] sm:min-w-[130px] text-center text-foreground">
               {monthYearTitle}
             </span>
             <button
               type="button"
               onClick={handleNextMonth}
               aria-label="Next month"
-              className="p-1.5 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+              className="p-2 sm:p-1.5 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors min-h-[32px] min-w-[32px] flex items-center justify-center"
             >
               <ChevronRight className="size-4" />
             </button>
@@ -351,11 +351,12 @@ export function CalendarPage() {
             size="sm"
             onClick={() => openCreateDialog()}
             disabled={!isOnline}
-            className="text-xs gap-1.5 shadow-2xs hover:shadow-xs rounded-lg font-medium"
+            className="text-xs gap-1 sm:gap-1.5 shadow-2xs hover:shadow-xs rounded-lg font-medium h-8 px-2.5 sm:px-3 min-h-[32px]"
             title={!isOnline ? "Event creation is disabled while offline" : "Create Event"}
           >
             <Plus className="size-3.5" />
-            <span>Create Event</span>
+            <span className="hidden xs:inline sm:inline">Create Event</span>
+            <span className="inline xs:hidden sm:hidden">Add</span>
           </Button>
         </div>
       </div>
@@ -389,14 +390,14 @@ export function CalendarPage() {
           {/* Month Calendar Grid (Takes 2 cols on lg) */}
           <div className="lg:col-span-2 border border-border/80 rounded-xl bg-card/60 overflow-hidden shadow-2xs">
             {/* Weekday headers */}
-            <div className="grid grid-cols-7 border-b border-border/70 bg-muted/30 text-center font-heading font-semibold text-[11px] uppercase tracking-wider text-muted-foreground py-2.5">
-              <span>Sun</span>
-              <span>Mon</span>
-              <span>Tue</span>
-              <span>Wed</span>
-              <span>Thu</span>
-              <span>Fri</span>
-              <span>Sat</span>
+            <div className="grid grid-cols-7 border-b border-border/70 bg-muted/30 text-center font-heading font-semibold text-[10px] sm:text-[11px] uppercase tracking-wider text-muted-foreground py-2 sm:py-2.5">
+              <span><span className="inline sm:hidden">S</span><span className="hidden sm:inline">Sun</span></span>
+              <span><span className="inline sm:hidden">M</span><span className="hidden sm:inline">Mon</span></span>
+              <span><span className="inline sm:hidden">T</span><span className="hidden sm:inline">Tue</span></span>
+              <span><span className="inline sm:hidden">W</span><span className="hidden sm:inline">Wed</span></span>
+              <span><span className="inline sm:hidden">T</span><span className="hidden sm:inline">Thu</span></span>
+              <span><span className="inline sm:hidden">F</span><span className="hidden sm:inline">Fri</span></span>
+              <span><span className="inline sm:hidden">S</span><span className="hidden sm:inline">Sat</span></span>
             </div>
 
             {/* Day grid */}
@@ -410,7 +411,7 @@ export function CalendarPage() {
                     key={cell.dateKey}
                     type="button"
                     onClick={() => setSelectedDateKey(cell.dateKey)}
-                    className={`min-h-[72px] sm:min-h-[88px] p-2 flex flex-col text-left transition-all relative ${
+                    className={`min-h-[52px] sm:min-h-[88px] p-1 sm:p-2 flex flex-col text-left transition-all relative ${
                       cell.isCurrentMonth
                         ? "bg-card/40 hover:bg-muted/30"
                         : "bg-muted/10 text-muted-foreground/50 hover:bg-muted/20"
@@ -418,7 +419,7 @@ export function CalendarPage() {
                   >
                     <div className="flex items-center justify-between w-full">
                       <span
-                        className={`text-xs font-medium inline-flex items-center justify-center size-6 rounded-full transition-all ${
+                        className={`text-xs font-medium inline-flex items-center justify-center size-5 sm:size-6 rounded-full transition-all ${
                           cell.isToday
                             ? "bg-primary text-primary-foreground font-semibold shadow-2xs"
                             : cell.isCurrentMonth
@@ -435,8 +436,24 @@ export function CalendarPage() {
                       )}
                     </div>
 
-                    {/* Compact event pills preview */}
-                    <div className="mt-1.5 space-y-1 overflow-hidden w-full">
+                    {/* Mobile event indicator dots */}
+                    <div className="flex sm:hidden items-center justify-center gap-0.5 mt-1 flex-wrap w-full">
+                      {dayEvents.slice(0, 3).map((ev) => (
+                        <span
+                          key={ev.itemId}
+                          className="size-1 rounded-full bg-primary"
+                          title={ev.title}
+                        />
+                      ))}
+                      {dayEvents.length > 3 && (
+                        <span className="text-[8px] text-muted-foreground leading-none font-bold">
+                          +
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Desktop compact event pills preview */}
+                    <div className="hidden sm:block mt-1.5 space-y-1 overflow-hidden w-full">
                       {dayEvents.slice(0, 2).map((ev) => (
                         <div
                           key={ev.itemId}
@@ -538,9 +555,9 @@ export function CalendarPage() {
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
         >
-          <div className="bg-card border border-border rounded-lg shadow-lg max-w-md w-full p-6 space-y-4">
+          <div className="bg-card border border-border rounded-t-2xl sm:rounded-lg shadow-lg max-w-md w-full p-5 sm:p-6 space-y-4 max-h-[92dvh] overflow-y-auto safe-area-pb">
             <div className="flex items-center justify-between border-b border-border pb-3">
               <h2 className="text-base font-semibold text-foreground">
                 {editingEvent ? "Edit Event" : "Create Event"}
@@ -548,7 +565,7 @@ export function CalendarPage() {
               <button
                 type="button"
                 onClick={() => setDialogOpen(false)}
-                className="text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground p-1 rounded-md"
                 aria-label="Close"
               >
                 <X className="size-4" />

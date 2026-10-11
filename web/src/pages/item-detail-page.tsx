@@ -211,20 +211,20 @@ export function ItemDetailPage() {
   return (
     <div className="w-full max-w-3xl lg:max-w-4xl mx-auto py-6 md:py-8 space-y-6">
       {/* Top Header & Navigation Bar */}
-      <header className="flex items-center justify-between gap-4 border-b border-border/50 pb-4">
-        <div className="flex items-center gap-3">
+      <header className="flex items-center justify-between gap-3 border-b border-border/50 pb-3 sm:pb-4">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <Button
             asChild
             variant="ghost"
             size="sm"
-            className="text-xs text-muted-foreground hover:text-foreground -ml-2 h-8 px-2.5 rounded-lg"
+            className="text-xs text-muted-foreground hover:text-foreground -ml-1 sm:-ml-2 h-8 px-2 sm:px-2.5 rounded-lg shrink-0"
           >
             <Link to="/inbox" title="Return to Inbox (Esc)">
               <ArrowLeft className="size-3.5 mr-1" />
               Inbox
             </Link>
           </Button>
-          <span className="text-muted-foreground/40 text-xs">/</span>
+          <span className="text-muted-foreground/40 text-xs shrink-0">/</span>
           <span className="text-xs font-mono text-muted-foreground truncate max-w-[120px] sm:max-w-[200px]">
             {record.item.id.slice(0, 8)}...
           </span>

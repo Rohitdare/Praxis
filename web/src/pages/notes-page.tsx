@@ -373,23 +373,23 @@ export function NotesPage() {
           {activeNote ? (
             <div className="p-4 md:p-6 rounded-xl border border-border/80 bg-card/60 space-y-4 shadow-2xs">
               {/* Mobile Back to List Bar */}
-              <div className="flex items-center justify-between md:hidden pb-2 border-b border-border/60">
+              <div className="flex items-center justify-between md:hidden pb-2.5 border-b border-border/60">
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={() => setShowMobileEditor(false)}
-                  className="text-xs h-7 px-2"
+                  className="text-xs h-8 px-2.5 min-h-[36px] flex items-center"
                 >
                   <ArrowLeft className="size-3.5 mr-1" />
                   Back to List
                 </Button>
-                <span className="text-[11px] text-muted-foreground">
+                <span className="text-[11px] text-muted-foreground font-medium">
                   {hasUnsavedChanges ? "Unsaved edits" : "Saved"}
                 </span>
               </div>
 
               {/* Top Editor Toolbar */}
-              <div className="flex items-center justify-between gap-2 pb-2 border-b border-border/50">
+              <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-border/50">
                 <div className="flex items-center gap-2">
                   <span className="font-heading font-semibold text-xs text-muted-foreground uppercase tracking-wider">
                     Note Editor
@@ -412,7 +412,7 @@ export function NotesPage() {
                     asChild
                     variant="ghost"
                     size="sm"
-                    className="text-xs h-7 text-muted-foreground hover:text-foreground rounded-md"
+                    className="text-xs h-8 px-2.5 min-h-[36px] sm:h-7 text-muted-foreground hover:text-foreground rounded-md"
                     title="Open full item detail"
                   >
                     <Link to={`/items/${activeNote.id}`}>
@@ -426,7 +426,7 @@ export function NotesPage() {
                     size="sm"
                     onClick={() => handleDelete(activeNote.id)}
                     disabled={isDeleting}
-                    className="text-xs h-7 text-destructive hover:bg-destructive/10 rounded-md"
+                    className="text-xs h-8 px-2 min-h-[36px] sm:h-7 text-destructive hover:bg-destructive/10 rounded-md"
                     title="Delete Note"
                   >
                     <Trash2 className="size-3.5" />
@@ -436,7 +436,7 @@ export function NotesPage() {
                     size="sm"
                     onClick={handleSave}
                     disabled={!isOnline || isSaving || !hasUnsavedChanges}
-                    className="text-xs h-7 inline-flex items-center gap-1 shadow-2xs rounded-lg font-medium"
+                    className="text-xs h-8 px-3 min-h-[36px] sm:h-7 inline-flex items-center gap-1 shadow-2xs rounded-lg font-medium"
                     aria-label="Save note"
                   >
                     {isSaving ? (

@@ -151,8 +151,8 @@ export function AuthPage() {
   }
 
   return (
-    <main className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-6 selection:bg-primary selection:text-primary-foreground relative">
-      <div className="absolute top-4 right-4">
+    <main className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-4 sm:p-6 selection:bg-primary selection:text-primary-foreground relative">
+      <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
         <ThemeToggle className="size-9 bg-card/60 border border-border/80 shadow-2xs" />
       </div>
       <div className="w-full max-w-sm mx-auto space-y-6">

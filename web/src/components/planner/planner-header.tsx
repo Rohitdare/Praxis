@@ -45,10 +45,10 @@ export function PlannerHeader({
   })
 
   return (
-    <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border/60">
+    <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-2 border-b border-border/60">
       {/* Left: Title & Date Controls */}
       <div className="space-y-1">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5 flex-wrap">
           <h1 className="text-xl sm:text-2xl font-heading font-extrabold tracking-tight text-foreground flex items-center gap-2">
             <CheckSquare className="size-5 sm:size-6 text-primary shrink-0" />
             <span>To-Do Planner</span>
@@ -63,18 +63,18 @@ export function PlannerHeader({
         </div>
 
         {activeTab === "daily" && (
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground pt-0.5">
+          <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground pt-0.5">
             <span className="font-semibold text-foreground text-sm">
               {formattedDateString}
             </span>
 
-            <div className="flex items-center gap-0.5 ml-2">
+            <div className="flex items-center gap-1 ml-1 sm:ml-2">
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
                 onClick={handlePrevDay}
-                className="size-6 p-0 rounded-md"
+                className="size-7 sm:size-6 p-0 rounded-md"
                 title="Previous Day"
                 aria-label="Previous Day"
               >
@@ -86,7 +86,7 @@ export function PlannerHeader({
                 variant={isToday ? "secondary" : "outline"}
                 size="sm"
                 onClick={handleToday}
-                className="h-6 px-2 text-[11px] rounded-md font-medium"
+                className="h-7 sm:h-6 px-2.5 text-[11px] rounded-md font-medium"
                 title="Go to Today"
               >
                 Today
@@ -97,7 +97,7 @@ export function PlannerHeader({
                 variant="ghost"
                 size="sm"
                 onClick={handleNextDay}
-                className="size-6 p-0 rounded-md"
+                className="size-7 sm:size-6 p-0 rounded-md"
                 title="Next Day"
                 aria-label="Next Day"
               >
@@ -112,14 +112,14 @@ export function PlannerHeader({
       <div
         role="tablist"
         aria-label="Planner views"
-        className="flex items-center gap-1 p-1 rounded-xl bg-muted/40 border border-border/60 self-start sm:self-auto"
+        className="w-full sm:w-auto grid grid-cols-2 sm:flex items-center gap-1 p-1 rounded-xl bg-muted/40 border border-border/60"
       >
         <button
           type="button"
           role="tab"
           aria-selected={activeTab === "daily"}
           onClick={() => onTabChange("daily")}
-          className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+          className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium min-h-[36px] sm:min-h-0 transition-all ${
             activeTab === "daily"
               ? "bg-card text-foreground font-semibold shadow-2xs"
               : "text-muted-foreground hover:text-foreground"
@@ -135,7 +135,7 @@ export function PlannerHeader({
           role="tab"
           aria-selected={activeTab === "weekly"}
           onClick={() => onTabChange("weekly")}
-          className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+          className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium min-h-[36px] sm:min-h-0 transition-all ${
             activeTab === "weekly"
               ? "bg-card text-foreground font-semibold shadow-2xs"
               : "text-muted-foreground hover:text-foreground"

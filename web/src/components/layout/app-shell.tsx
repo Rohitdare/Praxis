@@ -136,21 +136,23 @@ export function AppShell() {
           MOBILE COMPACT TOP HEADER (< md)
           Clean floating top capsule with brand, sync status, and theme toggle.
          ========================================================================= */}
-      <div className="md:hidden sticky top-2 z-40 px-3 w-full">
-        <header className="flex items-center justify-between px-3.5 py-2 rounded-full border border-border/80 bg-background/90 dark:bg-card/90 backdrop-blur-md shadow-xs transition-all">
-          <div className="flex items-center gap-2">
+      <div className="md:hidden sticky top-2 z-40 px-2.5 sm:px-3 w-full safe-area-pt">
+        <header className="flex items-center justify-between px-3 py-1.5 rounded-full border border-border/80 bg-background/90 dark:bg-card/90 backdrop-blur-md shadow-xs transition-all">
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
             <NavLink
               to="/capture"
-              className="flex items-center gap-1.5 pl-1 text-xs font-heading font-extrabold tracking-tight text-foreground select-none"
+              className="flex items-center gap-1.5 pl-0.5 text-xs font-heading font-extrabold tracking-tight text-foreground select-none shrink-0"
               aria-label="Praxis Home"
             >
               <PraxisLogo variant="icon" size="xs" aria-hidden="true" />
               <span className="font-heading font-bold text-xs tracking-tight">Praxis</span>
             </NavLink>
-            <Clock compact showDate={false} className="py-0.5 px-2 text-[10px]" />
+            <div className="hidden min-[360px]:flex items-center">
+              <Clock compact showDate={false} className="py-0.5 px-1.5 text-[10px]" />
+            </div>
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 shrink-0">
             <SyncIndicator />
             <ThemeToggle className="size-7" />
           </div>
@@ -161,7 +163,7 @@ export function AppShell() {
           MAIN CONTENT CONTAINER
           Allows pages to use their intentional responsive layout tokens.
          ========================================================================= */}
-      <main className="flex-1 w-full mx-auto px-4 sm:px-6 md:px-8 pt-4 md:pt-6 pb-24 md:pb-12 max-w-7xl">
+      <main className="flex-1 w-full mx-auto px-3 sm:px-6 md:px-8 pt-3 sm:pt-4 md:pt-6 pb-24 sm:pb-28 md:pb-12 max-w-7xl">
         <Outlet />
       </main>
 
@@ -170,83 +172,83 @@ export function AppShell() {
           Thumb-reachable floating capsule respecting safe area insets.
          ========================================================================= */}
       <nav
-        className="md:hidden fixed bottom-3 inset-x-3 max-w-sm mx-auto z-40 rounded-full border border-border/80 bg-background/95 dark:bg-card/95 backdrop-blur-md shadow-md p-1.5 flex items-center justify-around safe-area-pb"
+        className="md:hidden fixed bottom-2.5 sm:bottom-3 inset-x-2 sm:inset-x-3 max-w-sm mx-auto z-40 rounded-full border border-border/80 bg-background/95 dark:bg-card/95 backdrop-blur-md shadow-md p-1 flex items-center justify-around safe-area-pb"
         aria-label="Mobile Navigation"
       >
         <NavLink
           to="/capture"
           className={({ isActive }) =>
-            `flex flex-col items-center justify-center min-h-[44px] min-w-[48px] px-2.5 py-1 rounded-full text-[10px] font-medium transition-all ${
+            `flex flex-col items-center justify-center min-h-[44px] flex-1 min-w-0 py-1 px-0.5 rounded-full text-[10px] font-medium transition-all ${
               isActive
                 ? "bg-secondary text-foreground font-semibold shadow-2xs"
                 : "text-muted-foreground/80 hover:text-foreground"
             }`
           }
         >
-          <PenLine className="size-4 mb-0.5" aria-hidden="true" />
-          <span>Capture</span>
+          <PenLine className="size-4 mb-0.5 shrink-0" aria-hidden="true" />
+          <span className="truncate max-w-full">Capture</span>
         </NavLink>
 
         <NavLink
           to="/inbox"
           className={({ isActive }) =>
-            `flex flex-col items-center justify-center min-h-[44px] min-w-[48px] px-2.5 py-1 rounded-full text-[10px] font-medium transition-all ${
+            `flex flex-col items-center justify-center min-h-[44px] flex-1 min-w-0 py-1 px-0.5 rounded-full text-[10px] font-medium transition-all ${
               isActive
                 ? "bg-secondary text-foreground font-semibold shadow-2xs"
                 : "text-muted-foreground/80 hover:text-foreground"
             }`
           }
         >
-          <Inbox className="size-4 mb-0.5" aria-hidden="true" />
-          <span>Inbox</span>
+          <Inbox className="size-4 mb-0.5 shrink-0" aria-hidden="true" />
+          <span className="truncate max-w-full">Inbox</span>
         </NavLink>
 
         <NavLink
           to="/planner"
           className={({ isActive }) =>
-            `flex flex-col items-center justify-center min-h-[44px] min-w-[48px] px-2.5 py-1 rounded-full text-[10px] font-medium transition-all ${
+            `flex flex-col items-center justify-center min-h-[44px] flex-1 min-w-0 py-1 px-0.5 rounded-full text-[10px] font-medium transition-all ${
               isActive
                 ? "bg-secondary text-foreground font-semibold shadow-2xs"
                 : "text-muted-foreground/80 hover:text-foreground"
             }`
           }
         >
-          <CheckSquare className="size-4 mb-0.5" aria-hidden="true" />
-          <span>Planner</span>
+          <CheckSquare className="size-4 mb-0.5 shrink-0" aria-hidden="true" />
+          <span className="truncate max-w-full">Planner</span>
         </NavLink>
 
         <NavLink
           to="/notes"
           className={({ isActive }) =>
-            `flex flex-col items-center justify-center min-h-[44px] min-w-[48px] px-2.5 py-1 rounded-full text-[10px] font-medium transition-all ${
+            `flex flex-col items-center justify-center min-h-[44px] flex-1 min-w-0 py-1 px-0.5 rounded-full text-[10px] font-medium transition-all ${
               isActive
                 ? "bg-secondary text-foreground font-semibold shadow-2xs"
                 : "text-muted-foreground/80 hover:text-foreground"
             }`
           }
         >
-          <FileText className="size-4 mb-0.5" aria-hidden="true" />
-          <span>Notes</span>
+          <FileText className="size-4 mb-0.5 shrink-0" aria-hidden="true" />
+          <span className="truncate max-w-full">Notes</span>
         </NavLink>
 
         <NavLink
           to="/calendar"
           className={({ isActive }) =>
-            `flex flex-col items-center justify-center min-h-[44px] min-w-[48px] px-2.5 py-1 rounded-full text-[10px] font-medium transition-all ${
+            `flex flex-col items-center justify-center min-h-[44px] flex-1 min-w-0 py-1 px-0.5 rounded-full text-[10px] font-medium transition-all ${
               isActive
                 ? "bg-secondary text-foreground font-semibold shadow-2xs"
                 : "text-muted-foreground/80 hover:text-foreground"
             }`
           }
         >
-          <Calendar className="size-4 mb-0.5" aria-hidden="true" />
-          <span>Calendar</span>
+          <Calendar className="size-4 mb-0.5 shrink-0" aria-hidden="true" />
+          <span className="truncate max-w-full">Calendar</span>
         </NavLink>
 
         <NavLink
           to="/settings"
           className={({ isActive }) =>
-            `flex flex-col items-center justify-center min-h-[44px] min-w-[48px] px-2.5 py-1 rounded-full text-[10px] font-medium transition-all ${
+            `flex flex-col items-center justify-center min-h-[44px] flex-1 min-w-0 py-1 px-0.5 rounded-full text-[10px] font-medium transition-all ${
               isActive
                 ? "bg-secondary text-foreground font-semibold shadow-2xs"
                 : "text-muted-foreground/80 hover:text-foreground"
@@ -254,8 +256,8 @@ export function AppShell() {
           }
           aria-label="Settings"
         >
-          <Settings className="size-4 mb-0.5" aria-hidden="true" />
-          <span>Settings</span>
+          <Settings className="size-4 mb-0.5 shrink-0" aria-hidden="true" />
+          <span className="truncate max-w-full">Settings</span>
         </NavLink>
       </nav>
     </div>

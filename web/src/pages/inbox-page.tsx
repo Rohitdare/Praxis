@@ -94,17 +94,17 @@ export function InboxPage() {
   return (
     <div className="w-full max-w-4xl lg:max-w-5xl mx-auto py-6 md:py-10 space-y-6">
       {/* Header with Title and Item Count */}
-      <div className="flex items-baseline justify-between gap-4 border-b border-border/50 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-3 sm:gap-4 border-b border-border/50 pb-3 sm:pb-4">
         <div>
           <h1 className="font-heading font-extrabold text-2xl sm:text-3xl tracking-tight text-foreground">
             Inbox
           </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1">
             Triage newly captured notes, links, and ideas.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {!isOnline && (
             <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 font-medium border border-amber-500/20">
               Offline mode

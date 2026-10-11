@@ -61,24 +61,24 @@ export function TaskQuickAdd({ currentDate, onAddTask, disabled }: TaskQuickAddP
 
   return (
     <form onSubmit={handleSubmit} className="space-y-2">
-      <div className="flex items-center gap-2 p-1.5 rounded-xl border border-border/80 bg-card/60 backdrop-blur-xs shadow-2xs focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+      <div className="flex items-center gap-1.5 sm:gap-2 p-1.5 rounded-xl border border-border/80 bg-card/60 backdrop-blur-xs shadow-2xs focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
         <Input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Add a task for today..."
           disabled={disabled || isSubmitting}
-          className="border-0 shadow-none focus-visible:ring-0 bg-transparent text-sm h-8 px-2"
+          className="border-0 shadow-none focus-visible:ring-0 bg-transparent text-sm h-9 sm:h-8 px-2 flex-1 min-w-0"
           aria-label="New task title"
         />
 
-        <div className="flex items-center gap-1 shrink-0 pr-1">
+        <div className="flex items-center gap-1 shrink-0 pr-0.5">
           <Button
             type="button"
             variant="ghost"
             size="sm"
             onClick={cyclePriority}
-            className={`h-7 px-2 text-xs font-medium rounded-lg gap-1 ${priorityColor}`}
+            className={`h-8 sm:h-7 px-2 text-xs font-medium rounded-lg gap-1 min-h-[32px] sm:min-h-0 ${priorityColor}`}
             title={`Priority: ${priority} (click to change)`}
             aria-label={`Priority: ${priority}`}
           >
@@ -90,7 +90,7 @@ export function TaskQuickAdd({ currentDate, onAddTask, disabled }: TaskQuickAddP
             type="submit"
             size="sm"
             disabled={!title.trim() || disabled || isSubmitting}
-            className="h-7 px-2.5 rounded-lg text-xs gap-1 font-medium shadow-2xs"
+            className="h-8 sm:h-7 px-3 sm:px-2.5 rounded-lg text-xs gap-1 font-medium shadow-2xs min-h-[32px] sm:min-h-0"
             aria-label="Add task"
           >
             <Plus className="size-3.5" />

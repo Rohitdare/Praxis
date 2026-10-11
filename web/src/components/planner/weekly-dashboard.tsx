@@ -53,8 +53,8 @@ export function WeeklyDashboard({
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* Week Navigator Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl border border-border/80 bg-card/60 backdrop-blur-xs">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-xl sm:rounded-2xl border border-border/80 bg-card/60 backdrop-blur-xs">
+        <div className="flex items-center gap-2 flex-wrap">
           <Calendar className="size-4 text-primary shrink-0" />
           <span className="text-sm font-semibold text-foreground tracking-tight">
             {formatWeekRange()}
@@ -66,19 +66,19 @@ export function WeeklyDashboard({
           )}
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center justify-between sm:justify-start gap-1 w-full sm:w-auto">
           <Button
             type="button"
             variant="ghost"
             size="sm"
             onClick={handlePrevWeek}
             disabled={isLoading}
-            className="h-8 px-2 rounded-lg text-xs gap-1"
+            className="h-8 px-2 rounded-lg text-xs gap-1 min-h-[36px] sm:min-h-0 flex-1 sm:flex-none justify-center"
             title="Previous Week"
             aria-label="Previous Week"
           >
             <ChevronLeft className="size-3.5" />
-            <span className="hidden sm:inline">Prev Week</span>
+            <span className="inline sm:inline">Prev</span>
           </Button>
 
           <Button
@@ -87,7 +87,7 @@ export function WeeklyDashboard({
             size="sm"
             onClick={handleCurrentWeek}
             disabled={isLoading}
-            className="h-8 px-2.5 rounded-lg text-xs font-medium"
+            className="h-8 px-3 rounded-lg text-xs font-medium min-h-[36px] sm:min-h-0 flex-1 sm:flex-none justify-center"
             title="Current Week"
           >
             This Week
@@ -99,72 +99,72 @@ export function WeeklyDashboard({
             size="sm"
             onClick={handleNextWeek}
             disabled={isLoading}
-            className="h-8 px-2 rounded-lg text-xs gap-1"
+            className="h-8 px-2 rounded-lg text-xs gap-1 min-h-[36px] sm:min-h-0 flex-1 sm:flex-none justify-center"
             title="Next Week"
             aria-label="Next Week"
           >
-            <span className="hidden sm:inline">Next Week</span>
+            <span className="inline sm:inline">Next</span>
             <ChevronRight className="size-3.5" />
           </Button>
         </div>
       </div>
 
       {/* Metric Cards Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
         {/* Planned */}
-        <div className="p-4 rounded-2xl border border-border/80 bg-card/60 backdrop-blur-xs space-y-1">
+        <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-border/80 bg-card/60 backdrop-blur-xs space-y-1">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>Planned</span>
             <Target className="size-3.5 text-primary" />
           </div>
-          <div className="text-2xl font-bold font-heading tracking-tight text-foreground">
+          <div className="text-xl sm:text-2xl font-bold font-heading tracking-tight text-foreground">
             {stats.tasksPlanned}
           </div>
-          <p className="text-[11px] text-muted-foreground">Tasks scheduled this week</p>
+          <p className="text-[10px] sm:text-[11px] text-muted-foreground truncate">Tasks scheduled</p>
         </div>
 
         {/* Completed */}
-        <div className="p-4 rounded-2xl border border-border/80 bg-card/60 backdrop-blur-xs space-y-1">
+        <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-border/80 bg-card/60 backdrop-blur-xs space-y-1">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>Completed</span>
             <CheckCircle2 className="size-3.5 text-emerald-500" />
           </div>
-          <div className="text-2xl font-bold font-heading tracking-tight text-foreground">
+          <div className="text-xl sm:text-2xl font-bold font-heading tracking-tight text-foreground">
             {stats.tasksCompleted}
           </div>
-          <p className="text-[11px] text-muted-foreground">Finished during this week</p>
+          <p className="text-[10px] sm:text-[11px] text-muted-foreground truncate">Finished this week</p>
         </div>
 
         {/* Completion Rate */}
-        <div className="p-4 rounded-2xl border border-border/80 bg-card/60 backdrop-blur-xs space-y-1">
+        <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-border/80 bg-card/60 backdrop-blur-xs space-y-1">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>Completion Rate</span>
-            <TrendingUp className="size-3.5 text-primary" />
+            <span className="truncate">Completion Rate</span>
+            <TrendingUp className="size-3.5 text-primary shrink-0" />
           </div>
-          <div className="text-2xl font-bold font-heading tracking-tight text-foreground">
+          <div className="text-xl sm:text-2xl font-bold font-heading tracking-tight text-foreground">
             {`${stats.completionRate}%`}
           </div>
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-[10px] sm:text-[11px] text-muted-foreground truncate">
             {stats.tasksPlanned > 0
-              ? `Of ${stats.tasksPlanned} planned tasks`
+              ? `Of ${stats.tasksPlanned} planned`
               : "No planned tasks"}
           </p>
         </div>
 
         {/* Outstanding / Overdue */}
-        <div className="p-4 rounded-2xl border border-border/80 bg-card/60 backdrop-blur-xs space-y-1">
+        <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-border/80 bg-card/60 backdrop-blur-xs space-y-1">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>Outstanding</span>
+            <span className="truncate">Outstanding</span>
             {stats.overdueTasks > 0 ? (
-              <AlertCircle className="size-3.5 text-rose-500" />
+              <AlertCircle className="size-3.5 text-rose-500 shrink-0" />
             ) : (
-              <Clock className="size-3.5 text-muted-foreground" />
+              <Clock className="size-3.5 text-muted-foreground shrink-0" />
             )}
           </div>
-          <div className="text-2xl font-bold font-heading tracking-tight text-foreground">
+          <div className="text-xl sm:text-2xl font-bold font-heading tracking-tight text-foreground">
             {stats.outstandingTasks}
           </div>
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-[10px] sm:text-[11px] text-muted-foreground truncate">
             {stats.overdueTasks > 0
               ? `${stats.overdueTasks} overdue`
               : "All caught up"}
@@ -186,11 +186,11 @@ export function WeeklyDashboard({
           <WeeklyBarChart activity={stats.dailyActivity} />
 
           {/* Daily Breakdown Table */}
-          <div className="p-4 rounded-2xl border border-border/80 bg-card/60 backdrop-blur-xs space-y-3">
+          <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-border/80 bg-card/60 backdrop-blur-xs space-y-3">
             <h3 className="text-xs font-semibold text-foreground">Daily Activity Breakdown</h3>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs text-left">
+            <div className="overflow-x-auto touch-pan-x -mx-1 px-1">
+              <table className="w-full min-w-[340px] text-xs text-left">
                 <thead>
                   <tr className="border-b border-border/60 text-muted-foreground">
                     <th className="pb-2 font-medium">Day</th>

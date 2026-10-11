@@ -157,7 +157,7 @@ export function SettingsPage() {
       {/* Sign Out Confirmation Dialog */}
       {showSignOutConfirm && (
         <div
-          className="fixed inset-0 z-50 bg-background/80 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+          className="fixed inset-0 z-50 bg-background/80 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-150"
           role="presentation"
         >
           <div
@@ -165,7 +165,7 @@ export function SettingsPage() {
             aria-modal="true"
             aria-labelledby="signout-dialog-title"
             aria-describedby="signout-dialog-description"
-            className="w-full max-w-sm rounded-xl border border-border bg-card p-5 md:p-6 shadow-lg space-y-4"
+            className="w-full max-w-sm rounded-t-2xl sm:rounded-xl border border-border bg-card p-5 md:p-6 shadow-lg space-y-4 safe-area-pb"
           >
             <div className="space-y-1.5">
               <h3
@@ -188,7 +188,7 @@ export function SettingsPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => setShowSignOutConfirm(false)}
-                className="text-xs rounded-lg"
+                className="text-xs rounded-lg min-h-[38px] px-3.5"
               >
                 Cancel
               </Button>
@@ -197,7 +197,7 @@ export function SettingsPage() {
                 variant="destructive"
                 size="sm"
                 onClick={handleConfirmSignOut}
-                className="text-xs inline-flex items-center gap-1.5 rounded-lg font-medium"
+                className="text-xs inline-flex items-center gap-1.5 rounded-lg font-medium min-h-[38px] px-3.5"
               >
                 <LogOut className="size-3.5" />
                 Sign out

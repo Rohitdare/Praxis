@@ -78,7 +78,7 @@ export function TaskFieldsComponent({ fields, onChange, disabled }: TaskFieldsPr
                   type="button"
                   disabled={disabled}
                   onClick={() => handlePriorityChange(p.value)}
-                  className={`flex-1 py-1.5 px-2 rounded-md border text-center font-medium transition-colors ${
+                  className={`flex-1 py-2 px-2 min-h-[36px] rounded-md border text-center font-medium transition-colors ${
                     isSelected
                       ? "bg-secondary text-secondary-foreground border-foreground/30 shadow-xs"
                       : "bg-background text-muted-foreground border-border hover:bg-accent"

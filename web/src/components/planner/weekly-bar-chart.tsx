@@ -9,7 +9,7 @@ export function WeeklyBarChart({ activity }: WeeklyBarChartProps) {
 
   return (
     <div
-      className="p-4 rounded-2xl border border-border/80 bg-card/60 backdrop-blur-xs space-y-3"
+      className="p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-border/80 bg-card/60 backdrop-blur-xs space-y-3"
       role="region"
       aria-label="Weekly Activity Chart"
     >
@@ -18,7 +18,7 @@ export function WeeklyBarChart({ activity }: WeeklyBarChartProps) {
         <span className="text-muted-foreground text-[11px]">Mon – Sun</span>
       </div>
 
-      <div className="grid grid-cols-7 gap-2 items-end pt-4 pb-2 h-36">
+      <div className="grid grid-cols-7 gap-1 sm:gap-2 items-end pt-4 pb-2 h-36">
         {activity.map((item) => {
           const heightPercent =
             item.completedCount === 0
@@ -33,8 +33,8 @@ export function WeeklyBarChart({ activity }: WeeklyBarChartProps) {
               key={item.day}
               className="flex flex-col items-center justify-end h-full gap-1.5 group relative"
             >
-              {/* Tooltip on hover */}
-              <div className="absolute -top-7 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity bg-popover text-popover-foreground text-[10px] font-medium px-1.5 py-0.5 rounded shadow-xs pointer-events-none whitespace-nowrap z-10 border border-border/80">
+              {/* Tooltip on hover / tap */}
+              <div className="absolute -top-7 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 group-active:opacity-100 transition-opacity bg-popover text-popover-foreground text-[10px] font-medium px-1.5 py-0.5 rounded shadow-xs pointer-events-none whitespace-nowrap z-10 border border-border/80">
                 {item.completedCount} completed ({item.plannedCount} planned)
               </div>
 

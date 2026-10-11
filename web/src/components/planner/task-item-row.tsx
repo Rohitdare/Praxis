@@ -101,7 +101,7 @@ export function TaskItemRow({
           aria-label={`Mark task "${task.title}" as ${isDone ? "incomplete" : "complete"}`}
           onClick={handleCheckboxClick}
           disabled={disabled || isPending}
-          className={`size-5 rounded-md border flex items-center justify-center shrink-0 transition-colors focus-visible:ring-2 focus-visible:ring-ring outline-none ${
+          className={`size-6 sm:size-5 rounded-md border flex items-center justify-center shrink-0 transition-colors focus-visible:ring-2 focus-visible:ring-ring outline-none ${
             isDone
               ? "bg-primary border-primary text-primary-foreground"
               : "border-border bg-background/80 hover:border-primary/60"
@@ -112,9 +112,9 @@ export function TaskItemRow({
 
         {/* Task Title & Details */}
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
             <span
-              className={`text-sm font-medium tracking-tight truncate ${
+              className={`text-sm font-medium tracking-tight break-words [overflow-wrap:anywhere] ${
                 isDone ? "line-through text-muted-foreground" : "text-foreground"
               }`}
             >
@@ -124,7 +124,7 @@ export function TaskItemRow({
             {/* Priority Indicator */}
             {task.priority !== "normal" && (
               <span
-                className={`inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[10px] font-medium border ${priorityStyle}`}
+                className={`inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[10px] font-medium border shrink-0 ${priorityStyle}`}
               >
                 <Flag className="size-2.5" />
                 <span className="capitalize">{task.priority}</span>
@@ -133,14 +133,14 @@ export function TaskItemRow({
 
             {/* Overdue Badge */}
             {task.isOverdue && !isDone && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-rose-500/10 text-rose-500 border border-rose-500/20">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-rose-500/10 text-rose-500 border border-rose-500/20 shrink-0">
                 Overdue
               </span>
             )}
 
             {/* Time Badge */}
             {timeString && (
-              <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+              <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground shrink-0">
                 <Clock className="size-3 shrink-0" />
                 <span>{timeString}</span>
               </span>
@@ -148,7 +148,7 @@ export function TaskItemRow({
           </div>
 
           {task.content && (
-            <p className="text-xs text-muted-foreground truncate mt-0.5 max-w-md">
+            <p className="text-xs text-muted-foreground break-words [overflow-wrap:anywhere] line-clamp-2 mt-0.5 max-w-md">
               {task.content}
             </p>
           )}
@@ -164,7 +164,7 @@ export function TaskItemRow({
             variant="outline"
             size="sm"
             onClick={handleCarryForward}
-            className="h-7 px-2 text-[11px] font-medium rounded-lg text-primary gap-1 border-primary/30 hover:bg-primary/10"
+            className="h-8 sm:h-7 px-2 text-[11px] font-medium rounded-lg text-primary gap-1 border-primary/30 hover:bg-primary/10"
             title="Carry forward to today"
             aria-label={`Carry forward ${task.title} to today`}
           >
@@ -176,7 +176,7 @@ export function TaskItemRow({
         {/* Link to detail page */}
         <NavLink
           to={`/items/${task.id}`}
-          className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 opacity-0 group-hover:opacity-100 transition-opacity"
+          className="p-1.5 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 opacity-80 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
           title="Open task details"
           aria-label={`Open details for ${task.title}`}
         >
@@ -189,7 +189,7 @@ export function TaskItemRow({
           variant="ghost"
           size="sm"
           onClick={handleDelete}
-          className="size-7 p-0 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
+          className="size-9 sm:size-7 p-0 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-80 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex items-center justify-center"
           title="Delete task"
           aria-label={`Delete task ${task.title}`}
         >

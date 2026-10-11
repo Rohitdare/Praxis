@@ -103,13 +103,13 @@ export function ItemRow({
         className
       )}
     >
-      <div className="flex items-start gap-3.5 min-w-0 flex-1">
+      <div className="flex items-start gap-3 sm:gap-3.5 min-w-0 flex-1">
         <div className="mt-0.5 p-1.5 rounded-lg bg-muted/60 text-muted-foreground group-hover:bg-background transition-colors border border-border/40 shrink-0">
           {getItemTypeIcon(item.type)}
         </div>
 
         <div className="space-y-1.5 min-w-0 flex-1">
-          <p className="text-sm font-normal text-foreground leading-relaxed break-words whitespace-pre-wrap">
+          <p className="text-sm font-normal text-foreground leading-relaxed break-words [overflow-wrap:anywhere] whitespace-pre-wrap">
             {item.raw_input}
           </p>
 
@@ -134,7 +134,7 @@ export function ItemRow({
         </div>
       </div>
 
-      <div className="shrink-0 flex items-center self-center pl-2">
+      <div className="shrink-0 flex items-center self-center pl-1 sm:pl-2">
         <Button
           type="button"
           variant="ghost"
@@ -142,7 +142,7 @@ export function ItemRow({
           disabled={busy}
           onClick={handleDelete}
           aria-label="Delete item"
-          className="text-muted-foreground/70 hover:text-destructive hover:bg-destructive/10 transition-colors opacity-70 group-hover:opacity-100 focus-visible:opacity-100"
+          className="text-muted-foreground/70 hover:text-destructive hover:bg-destructive/10 transition-colors opacity-90 sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100 min-h-[36px] min-w-[36px] p-2"
         >
           <Trash2 className="size-3.5" aria-hidden="true" />
         </Button>

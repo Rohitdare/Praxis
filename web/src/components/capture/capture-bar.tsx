@@ -113,13 +113,13 @@ export function CaptureBar({ onCaptureSuccess }: CaptureBarProps) {
             <div className="flex items-center gap-2 min-w-0 flex-1">
               {smartClassification ? (
                 <div
-                  className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-secondary/80 border border-border/60 text-[11px] font-medium text-foreground/80 animate-in fade-in duration-150"
+                  className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-secondary/80 border border-border/60 text-[11px] font-medium text-foreground/80 animate-in fade-in duration-150 max-w-[160px] sm:max-w-none truncate"
                   title="Smart capture suggestion"
                 >
-                  <Sparkles className="size-3 text-muted-foreground" aria-hidden="true" />
-                  <span className="capitalize">{smartClassification.type}</span>
+                  <Sparkles className="size-3 text-muted-foreground shrink-0" aria-hidden="true" />
+                  <span className="capitalize shrink-0">{smartClassification.type}</span>
                   {smartClassification.suggestedTags?.map((tag) => (
-                    <span key={tag} className="text-muted-foreground font-normal">
+                    <span key={tag} className="text-muted-foreground font-normal truncate">
                       · {tag}
                     </span>
                   ))}
@@ -135,7 +135,7 @@ export function CaptureBar({ onCaptureSuccess }: CaptureBarProps) {
               type="submit"
               size="sm"
               disabled={!hasContent || isSaving}
-              className="min-h-[36px] min-w-[72px] font-medium transition-all shadow-2xs hover:shadow-xs"
+              className="min-h-[38px] sm:min-h-[36px] min-w-[68px] sm:min-w-[72px] font-medium transition-all shadow-2xs hover:shadow-xs shrink-0"
             >
               {isSaving ? "Saving..." : "Save"}
             </Button>

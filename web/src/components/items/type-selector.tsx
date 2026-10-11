@@ -37,7 +37,7 @@ export function TypeSelector({ currentType, onChange, disabled }: TypeSelectorPr
               aria-checked={isSelected}
               disabled={disabled}
               onClick={() => onChange(type)}
-              className={`flex items-center justify-center gap-2 p-2.5 rounded-lg border text-xs font-medium transition-all ${
+              className={`flex items-center justify-center gap-2 p-2.5 min-h-[42px] rounded-lg border text-xs font-medium transition-all ${
                 isSelected
                   ? "bg-primary text-primary-foreground border-primary shadow-xs"
                   : "bg-card text-muted-foreground border-border hover:bg-accent hover:text-foreground"
