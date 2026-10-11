@@ -56,13 +56,13 @@ export function RecentCaptures({ items, isLoading }: RecentCapturesProps) {
           No captures yet. Anything you type above will be saved locally.
         </p>
       ) : (
-        <ul className="divide-y divide-border/50 rounded-xl border border-border/80 bg-card/60 overflow-hidden shadow-2xs">
+        <ul className="divide-y divide-border/50 rounded-xl border border-border/80 bg-card/70 overflow-hidden shadow-2xs">
           {items.map((item) => {
             const isUrl = isLikelyUrl(item.raw_input)
             return (
               <li
                 key={item.id}
-                className="flex items-center justify-between gap-3 px-3.5 py-2.5 hover:bg-muted/30 transition-colors"
+                className="flex items-center justify-between gap-4 px-4 py-3 hover:bg-muted/40 transition-colors"
               >
                 <div className="flex items-center gap-2.5 min-w-0 flex-1">
                   {isUrl ? (

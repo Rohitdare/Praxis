@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
 import { AuthProvider } from "@/lib/auth/auth-context"
 import { SyncProvider } from "@/lib/sync/sync-context"
+import { ThemeProvider } from "@/lib/theme/theme-context"
 import { ProtectedRoute } from "@/components/auth/protected-route"
 import { PublicRoute } from "@/components/auth/public-route"
 import { AppShell } from "@/components/layout/app-shell"
@@ -42,12 +43,14 @@ export function AppRoutes() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <SyncProvider>
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
-      </SyncProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <SyncProvider>
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </SyncProvider>
+      </AuthProvider>
+    </ThemeProvider>
   )
 }

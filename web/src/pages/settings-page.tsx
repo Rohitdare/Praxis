@@ -85,7 +85,7 @@ export function SettingsPage() {
       : user?.app_metadata?.provider || "Email & Password"
 
   return (
-    <div className="w-full max-w-2xl mx-auto py-6 md:py-10 space-y-8">
+    <div className="w-full max-w-3xl lg:max-w-4xl mx-auto py-6 md:py-10 space-y-8">
       {/* Page Header */}
       <header className="space-y-1.5 pb-2 border-b border-border/50">
         <h1 className="font-heading font-extrabold text-2xl md:text-3xl tracking-tight text-foreground">

@@ -1,9 +1,9 @@
 # Personal Memory App — Implementation Status
 
-**Status:** UI Refinement & Design Quality Pass Completed
-**Version:** 1.7
-**Date:** 2026-10-10
-**Assessed by:** Senior Product Designer & Development Agent
+**Status:** Official Praxis Logo (ALT 3 / MODERN) Integration Completed
+**Version:** 1.8
+**Date:** 2026-10-11
+**Assessed by:** Senior Frontend Engineer & UI/UX Designer
 
 ---
 
@@ -601,12 +601,78 @@ Per PRD s8: Do not start Phase 2 until Phase 1 has been used for real for severa
   - Tactile action buttons for Retry Sync and JSON Export.
 
 ### Verification Matrix
-- **Vitest Unit/Integration Tests**: 20/20 test files (145/145 tests) passing.
+- **Vitest Unit/Integration Tests**: 21/21 test files (150/150 tests) passing.
 - **TypeScript Typecheck**: 0 errors (`tsc -b`).
 - **Linter**: 0 errors (`oxlint`).
-- **Vite Production Build**: Successful bundle generation in 2.00s.
+- **Vite Production Build**: Successful bundle generation in 0.9s.
 - **FastAPI Pytest**: 6/6 tests passing.
 - **FastAPI Ruff**: All checks passed.
+
+---
+
+## 10. Focus Lens Navbar, Responsive Layout & Dark/Light Theme System (October 2026)
+
+### Deliverable 1 — Focus Lens Floating Capsule Navbar
+- **Desktop Floating Capsule**:
+  - Centered horizontally near the top of the viewport (`sticky top-3.5 z-40`).
+  - Encased in a refined, compact pill (`rounded-full border border-border/80 bg-background/85 dark:bg-card/80 backdrop-blur-md shadow-sm`).
+  - Integrated brand identity with active navigation links for **Capture**, **Inbox**, **Notes**, and **Calendar**.
+  - Restrained active route pill (`bg-secondary text-foreground font-semibold shadow-2xs rounded-full`).
+  - Subtle divider elements separating identity, navigation routes, and the right utility control group.
+  - Balanced utility cluster integrating `SyncIndicator`, `ThemeToggle`, `Settings`, and `Sign out`.
+- **Mobile Responsive Header & Capsule**:
+  - Dedicated compact top header (`md:hidden sticky top-2 z-40`) providing brand mark, live sync indicator, theme toggle, and sign out without crowding.
+  - Floating bottom capsule navigation bar (`fixed bottom-3 inset-x-3 max-w-sm mx-auto z-40 rounded-full border border-border/80 bg-background/95 dark:bg-card/95 backdrop-blur-md shadow-md p-1.5`) with 44px touch targets respecting `safe-area-pb` insets.
+  - All primary routes (**Capture**, **Inbox**, **Notes**, **Calendar**, **Settings**) remain comfortably thumb-reachable.
+
+### Deliverable 2 — Responsive Container Tokens & Horizontal Whitespace Remediation
+- **Audit & Standardization**: Eliminated cramped legacy `max-w-2xl` (672px) wrappers across all routes, establishing intentional workspace widths:
+  - **Capture (`/capture`)**: Expanded to `max-w-4xl lg:max-w-5xl` (960px–1024px). The `CaptureBar` input and `RecentCaptures` list use the available width with clean vertical rhythm and unified alignment.
+  - **Inbox (`/inbox`)**: Expanded to `max-w-4xl lg:max-w-5xl`. Broadened item rows with aligned metadata badges, category chips, relative timestamps, and soft delete actions.
+  - **Notes (`/notes`)**: Expanded to `max-w-5xl lg:max-w-6xl` (1024px–1152px). Generous two-column layout giving 4 columns to real-time search & note lists and 8 columns to the distraction-free Markdown editor.
+  - **Calendar (`/calendar`)**: Expanded to `max-w-5xl lg:max-w-6xl`. Optimized month grid taking 2 columns on `lg:` viewports with 1 column dedicated to the selected day agenda view.
+  - **Item Detail (`/items/:id`)**: Form and immutable provenance card container aligned to `max-w-3xl lg:max-w-4xl` for comfortable long-form editing and reading measures.
+  - **Settings (`/settings`)**: Upgraded to `max-w-3xl lg:max-w-4xl` with spacious cards for Account, Synchronization Diagnostics, and Portable JSON Export.
+
+### Deliverable 3 — Complete Light & Dark Theme System
+- **Semantic CSS Token System**:
+  - **Light Mode**: Warm off-white background (`oklch(0.985 0.003 95)`), crisp elevated white card surfaces (`oklch(1 0 0)`), rich charcoal text (`oklch(0.18 0.005 60)`), and subtle warm borders (`oklch(0.91 0.003 90)`).
+  - **Dark Mode**: Deep matte obsidian charcoal background (`oklch(0.13 0.006 260)`), elevated charcoal card surfaces (`oklch(0.17 0.006 260)`), soft high-contrast text (`oklch(0.97 0 0)`), and subtle translucent borders (`oklch(1 0 0 / 11%)`).
+  - No harsh pitch-black or clinical stark white extremes; zero neon accents.
+- **Pre-Hydration Anti-FOUC Script**: Embedded inline `<script>` in `index.html` `head` that parses `localStorage.getItem('pm-theme')` or system `prefers-color-scheme` immediately prior to DOM rendering, preventing theme flash on reloads.
+- **Persistence & Fallback**: `ThemeProvider` persists user selections to `localStorage` under `pm-theme`, automatically listens to OS media query changes in system mode, and provides fallback defaults for resilient testing.
+- **ThemeToggle Component**: Accessible toggle button featuring Sun/Moon iconography with rotation transitions and ARIA attributes, integrated into desktop navbar, mobile header, and login screen.
+
+### Deliverable 5 — Official Praxis Logo (ALT 3 / MODERN) Integration
+- **Logo Preservation**:
+  - Exact preservation of the official symbol: bold geometric letter **P** (`#181818`), opaque white cat silhouette (`#FFFFFF`), soft warm gray cat eye (`#A9A8A7`), and warm orange four-point sparkle (`#F76F31`).
+  - Wordmark **Praxis** beneath the symbol in bold modern geometric sans typography (`#181818` for light mode, `#F5F5F5` for dark mode).
+  - Source reference saved at `web/public/branding/praxis-logo-reference.png`.
+- **Vector & High-DPI Assets**:
+  - `web/public/branding/praxis-icon.svg`: Standalone cat-and-P symbol with orange sparkle.
+  - `web/public/branding/praxis-logo.svg`: Full logo (symbol + wordmark) for light mode.
+  - `web/public/branding/praxis-logo-dark.svg`: Full logo with light wordmark for dark mode.
+  - `web/public/favicon.svg`: Standalone symbol favicon optimized for browser tabs.
+  - Transparent PNGs with opaque white cat: `praxis-icon.png`, `praxis-icon@2x.png`, `praxis-logo.png`, `praxis-logo@2x.png`, `praxis-logo-dark.png`, `praxis-logo-dark@2x.png`.
+- **Reusable PraxisLogo Component (`web/src/components/branding/praxis-logo.tsx`)**:
+  - Supports `variant`: `"full" | "icon" | "wordmark"`.
+  - Supports `size`: `"xs" | "sm" | "md" | "lg" | "xl"`.
+  - Handles light & dark mode via responsive `dark:hidden` / `hidden dark:block` image rendering without layout shift.
+  - Accessible `alt` text and sizing attributes.
+- **Application Integration**:
+  - Desktop Focus Lens Navbar (`app-shell.tsx`): Replaced placeholder dot with `PraxisLogo variant="icon" size="sm"`.
+  - Mobile Floating Top Header (`app-shell.tsx`): Replaced dot with `PraxisLogo variant="icon" size="xs"` and clean "Praxis" branding.
+  - Authentication Page (`auth-page.tsx`): Centered `PraxisLogo variant="full" size="lg"` prominently above the form.
+  - Route Loading States (`protected-route.tsx`, `public-route.tsx`): Subtle `PraxisLogo variant="icon"` with gentle pulsing animation.
+  - Browser Metadata (`index.html`): SVG favicon link `/favicon.svg`, PNG fallback, and Apple touch icon.
+  - PWA Configuration (`vite.config.ts`): Registered branding assets in `includeAssets` for offline caching.
+- **Verification**:
+  - Vitest: 22/22 test files passing (155/155 tests, including 5 dedicated tests in `praxis-logo.test.tsx`).
+  - TypeScript: 0 errors (`tsc -b`).
+  - Oxlint: 0 errors.
+  - Production Build: Successfully generated `dist/` with PWA manifest and service worker.
+  - Backend: 6/6 pytest tests passing; 0 ruff errors.
+
 
 
 

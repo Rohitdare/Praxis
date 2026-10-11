@@ -50,13 +50,13 @@ export function CapturePage() {
   }, [loadRecentCaptures])
 
   return (
-    <div className="w-full max-w-2xl mx-auto py-6 md:py-12 space-y-8">
+    <div className="w-full max-w-4xl lg:max-w-5xl mx-auto py-6 md:py-10 space-y-8">
       {/* Visual hierarchy: Capture is dominant per DP-02 */}
-      <header className="space-y-1.5 text-center md:text-left">
-        <h1 className="font-heading font-extrabold text-2xl md:text-3xl tracking-tight text-foreground">
+      <header className="space-y-2 text-center md:text-left">
+        <h1 className="font-heading font-extrabold text-2xl sm:text-3xl lg:text-4xl tracking-tight text-foreground">
           What do you want to remember?
         </h1>
-        <p className="text-xs md:text-sm text-muted-foreground leading-relaxed max-w-lg">
+        <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-xl">
           Quickly capture links, ideas, tasks, or anything else. Saved locally first.
         </p>
       </header>

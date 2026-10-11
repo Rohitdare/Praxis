@@ -92,14 +92,14 @@ export function InboxPage() {
   const filterCounts = countInboxItemsByFilter(items)
 
   return (
-    <div className="max-w-2xl mx-auto py-8 px-4 sm:px-6 space-y-6">
+    <div className="w-full max-w-4xl lg:max-w-5xl mx-auto py-6 md:py-10 space-y-6">
       {/* Header with Title and Item Count */}
       <div className="flex items-baseline justify-between gap-4 border-b border-border/50 pb-4">
         <div>
-          <h1 className="font-heading font-extrabold text-2xl md:text-3xl tracking-tight text-foreground">
+          <h1 className="font-heading font-extrabold text-2xl sm:text-3xl tracking-tight text-foreground">
             Inbox
           </h1>
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
             Triage newly captured notes, links, and ideas.
           </p>
         </div>

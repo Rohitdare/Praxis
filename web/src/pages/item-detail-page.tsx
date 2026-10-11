@@ -209,7 +209,7 @@ export function ItemDetailPage() {
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto py-6 md:py-8 space-y-6">
+    <div className="w-full max-w-3xl lg:max-w-4xl mx-auto py-6 md:py-8 space-y-6">
       {/* Top Header & Navigation Bar */}
       <header className="flex items-center justify-between gap-4 border-b border-border/50 pb-4">
         <div className="flex items-center gap-3">

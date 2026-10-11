@@ -284,7 +284,7 @@ export function CalendarPage() {
   })
 
   return (
-    <div className="space-y-6">
+    <div className="w-full max-w-5xl lg:max-w-6xl mx-auto py-2 md:py-4 space-y-6">
       {/* Offline banner */}
       {!isOnline && (
         <div

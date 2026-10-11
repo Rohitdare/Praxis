@@ -11,7 +11,14 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.svg", "icons.svg"],
+      includeAssets: [
+        "favicon.svg",
+        "icons.svg",
+        "branding/praxis-icon.svg",
+        "branding/praxis-logo.svg",
+        "branding/praxis-logo-dark.svg",
+        "branding/praxis-icon.png",
+      ],
       manifest: {
         name: "Personal Memory",
         short_name: "Memory",

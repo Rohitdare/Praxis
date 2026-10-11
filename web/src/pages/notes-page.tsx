@@ -226,7 +226,7 @@ export function NotesPage() {
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto space-y-4">
+    <div className="w-full max-w-5xl lg:max-w-6xl mx-auto py-2 md:py-4 space-y-5">
       {/* Top Header */}
       <div className="flex items-center justify-between gap-3 pb-3 border-b border-border/50">
         <div className="flex items-center gap-2.5">

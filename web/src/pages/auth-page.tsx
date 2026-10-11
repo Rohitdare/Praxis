@@ -3,6 +3,9 @@ import { useAuth } from "@/lib/auth/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
+import { ThemeToggle } from "@/components/theme/theme-toggle"
+import { PraxisLogo } from "@/components/branding/praxis-logo"
+
 type AuthMode = "signin" | "signup" | "forgot"
 
 export function AuthPage() {
@@ -148,21 +151,27 @@ export function AuthPage() {
   }
 
   return (
-    <main className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-6 selection:bg-primary selection:text-primary-foreground">
+    <main className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-6 selection:bg-primary selection:text-primary-foreground relative">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle className="size-9 bg-card/60 border border-border/80 shadow-2xs" />
+      </div>
       <div className="w-full max-w-sm mx-auto space-y-6">
-        <header className="space-y-2 text-center">
-          <h1 className="font-heading font-extrabold text-3xl tracking-tight text-foreground">
-            Personal Memory
-          </h1>
-          <p className="text-xs md:text-sm text-muted-foreground leading-relaxed">
-            {isRecoveryMode
-              ? "Set a new password for your account."
-              : mode === "forgot"
-              ? "Reset your password with your email address."
-              : mode === "signup"
-              ? "Create your private account to start capturing."
-              : "Your private place to capture things before you forget them."}
-          </p>
+        <header className="space-y-3 text-center flex flex-col items-center">
+          <PraxisLogo variant="full" size="lg" className="mx-auto" />
+          <div className="space-y-1">
+            <h1 className="font-heading font-extrabold text-2xl md:text-3xl tracking-tight text-foreground">
+              Personal Memory
+            </h1>
+            <p className="text-xs md:text-sm text-muted-foreground leading-relaxed">
+              {isRecoveryMode
+                ? "Set a new password for your account."
+                : mode === "forgot"
+                ? "Reset your password with your email address."
+                : mode === "signup"
+                ? "Create your private account to start capturing."
+                : "Your private place to capture things before you forget them."}
+            </p>
+          </div>
         </header>
 
         <div className="space-y-5">
