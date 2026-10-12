@@ -49,7 +49,7 @@ export async function gatherExportData(
   const partialReasons: string[] = []
 
   // 1. Read current sync state
-  const syncState = await getSyncEngineState(database)
+  const syncState = await getSyncEngineState(database, userId)
 
   // 2. Query Local-First Data from Dexie with STRICT OWNERSHIP SAFEGUARD
   // Unauthenticated captures (user_id === null) and foreign user items are NEVER included.
@@ -59,7 +59,7 @@ export async function gatherExportData(
 
   // 3. Check for any failed local outbox records belonging to this user
   const failedUserOutboxCount = await database.outbox
-    .filter((r) => r.status === "failed" && r.payload.user_id === userId)
+    .filter((r) => r.status === "failed" && (r.user_id === userId || r.payload?.user_id === userId))
     .count()
   if (failedUserOutboxCount > 0) {
     isPartial = true

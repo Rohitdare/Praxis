@@ -304,7 +304,7 @@ describe("Calendar Service Operations", () => {
         updatedAt: "2026-10-10T10:00:00Z",
       },
     ]
-    localStorage.setItem("pm_cached_calendar_events", JSON.stringify(cachedData))
+    localStorage.setItem("pm_cached_calendar_events_user-123", JSON.stringify(cachedData))
 
     Object.defineProperty(navigator, "onLine", { value: false, configurable: true })
 

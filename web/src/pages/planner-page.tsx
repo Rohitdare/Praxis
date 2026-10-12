@@ -18,8 +18,8 @@ import { TaskQuickAdd } from "@/components/planner/task-quick-add"
 import { WeeklyDashboard } from "@/components/planner/weekly-dashboard"
 
 export function PlannerPage() {
-  const { user } = useAuth()
-  const userId = user?.id || ""
+  const { user, isLoading: isAuthLoading } = useAuth()
+  const userId = isAuthLoading ? "" : (user?.id || "")
 
   const [activeTab, setActiveTab] = React.useState<"daily" | "weekly">("daily")
   const [selectedDate, setSelectedDate] = React.useState<string>(() =>
@@ -73,9 +73,21 @@ export function PlannerPage() {
     }
   }, [userId, selectedDate])
 
+  const prevUserIdRef = React.useRef<string | undefined>(userId)
   React.useEffect(() => {
+    if (prevUserIdRef.current !== userId) {
+      setDailyData({
+        date: selectedDate,
+        tasks: [],
+        overdueTasks: [],
+        completedTodayCount: 0,
+        plannedTodayCount: 0,
+      })
+      setIsLoadingDaily(true)
+    }
+    prevUserIdRef.current = userId
     void loadDailyTasks()
-  }, [loadDailyTasks])
+  }, [loadDailyTasks, userId, selectedDate])
 
   // Load Weekly Statistics
   const loadWeeklyStats = React.useCallback(async () => {

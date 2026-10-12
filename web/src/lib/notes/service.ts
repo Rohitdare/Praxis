@@ -18,9 +18,10 @@ export interface NoteItem {
   deleted_at: string | null
 }
 
-interface ServiceOptions {
+export interface ServiceOptions {
   supabaseClient?: SupabaseClient
   database?: PersonalMemoryDB
+  isOffline?: boolean
 }
 
 /**
@@ -33,7 +34,10 @@ export async function fetchNotes(
 ): Promise<NoteItem[]> {
   const client = options?.supabaseClient || supabase
   const database = options?.database || db
-  const isOnline = typeof navigator === "undefined" || navigator.onLine
+  const isOnline =
+    options?.isOffline !== undefined
+      ? !options.isOffline
+      : typeof navigator === "undefined" || navigator.onLine
 
   if (isOnline) {
     try {
@@ -190,7 +194,7 @@ export async function deleteNote(
 ): Promise<void> {
   // 1. Soft delete in local Dexie database and create outbox tombstone if present
   try {
-    await softDeleteItem(noteId, options)
+    await softDeleteItem(noteId, { ...options, userId })
   } catch {
     // If item was not in local DB, proceed to cloud delete
   }

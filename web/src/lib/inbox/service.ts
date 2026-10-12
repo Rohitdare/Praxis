@@ -26,6 +26,7 @@ export interface SoftDeleteOptions {
   database?: PersonalMemoryDB
   supabaseClient?: SupabaseClient
   triggerSync?: boolean
+  userId?: string
 }
 
 export interface SoftDeleteResult {
@@ -180,6 +181,7 @@ export async function softDeleteItem(
       // so initial upload upserts directly as tombstoned
       for (const rec of existingPending) {
         await database.outbox.update(rec.id, {
+          user_id: updatedItem.user_id,
           operation: "delete",
           payload: updatedItem,
           updated_at: now,
@@ -190,6 +192,7 @@ export async function softDeleteItem(
       const outboxRecord: OutboxRecord = {
         id: crypto.randomUUID(),
         item_id: itemId,
+        user_id: updatedItem.user_id,
         operation: "delete",
         payload: updatedItem,
         status: "pending",
@@ -228,6 +231,7 @@ export async function softDeleteItem(
  * Fetches active inbox items in reverse chronological order (newest first).
  * Local-first: returns local items when offline or on network failure.
  * When online, queries Supabase and merges pending local items.
+ * Strictly scopes local and remote records to the target authenticated user ID.
  */
 export async function fetchInboxItems(
   options: FetchInboxOptions = {}
@@ -235,8 +239,29 @@ export async function fetchInboxItems(
   const database = options.database || db
   const isOnline = options.isOnline ?? (typeof navigator !== "undefined" ? navigator.onLine : true)
 
-  // 1. Query all local items to find active items and locally tombstoned IDs
-  const localAll = await database.local_items.toArray()
+  // CRITICAL SECURITY INVARIANT (SEC-001):
+  // An unresolved user session (userId === undefined) during auth initialization
+  // must NEVER return items or leak anonymous/authenticated records. Return empty list immediately.
+  if (options.userId === undefined) {
+    return {
+      items: [],
+      source: "local",
+      error: null,
+    }
+  }
+
+  const targetUserId = options.userId
+
+  // 1. Query local items strictly filtered by targetUserId to find active items and locally tombstoned IDs
+  const localAll = await database.local_items
+    .filter((i) => {
+      if (targetUserId !== null) {
+        return i.user_id === targetUserId
+      }
+      return i.user_id === null
+    })
+    .toArray()
+
   const localActive = localAll.filter((i) => i.deleted_at === null)
   const locallyDeletedIds = new Set(
     localAll.filter((i) => i.deleted_at !== null).map((i) => i.id)
@@ -256,14 +281,20 @@ export async function fetchInboxItems(
     }
   }
 
-  // 3. Online: query Supabase items table (enforcing RLS & deleted_at is null)
+  // 3. Online: query Supabase items table (enforcing RLS & user_id filter & deleted_at is null)
   try {
     const client = options.supabaseClient || supabase
-    const { data: serverRows, error: serverError } = await client
+    let selectBuilder = client
       .from("items")
       .select(
         "id, user_id, raw_input, captured_at, created_at, updated_at, deleted_at, type, status, title, content"
       )
+
+    if (typeof selectBuilder.eq === "function") {
+      selectBuilder = selectBuilder.eq("user_id", options.userId)
+    }
+
+    const { data: serverRows, error: serverError } = await selectBuilder
       .is("deleted_at", null)
       .order("captured_at", { ascending: false })
 
@@ -295,9 +326,9 @@ export async function fetchInboxItems(
       })
     }
 
-    // Also include pending local items not yet uploaded
+    // Also include pending local items not yet uploaded (STRICTLY matching target user)
     for (const local of localActive) {
-      if (!itemsMap.has(local.id)) {
+      if (local.user_id === options.userId && !itemsMap.has(local.id)) {
         itemsMap.set(local.id, local)
       }
     }

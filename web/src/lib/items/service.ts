@@ -256,8 +256,9 @@ export async function updateItemClassification(
   // 3. Synchronize local Dexie cache
   if (updatedItemRow) {
     const existingLocal = await database.local_items.get(itemId)
-    if (existingLocal) {
+    if (existingLocal && existingLocal.user_id === userId) {
       await database.local_items.update(itemId, {
+        user_id: userId,
         title: updatedItemRow.title,
         content: updatedItemRow.content,
         type: updatedItemRow.type,

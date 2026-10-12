@@ -1,6 +1,8 @@
 import * as React from "react"
 import type { Session, User } from "@supabase/supabase-js"
 import { supabase } from "@/lib/supabase/client"
+import { clearSyncMemoryCache } from "@/lib/sync/engine"
+import { clearCalendarCache } from "@/lib/calendar/service"
 
 export interface AuthContextValue {
   user: User | null
@@ -82,6 +84,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return false
   })
 
+  const currentUserRef = React.useRef<User | null>(user)
+  currentUserRef.current = user
+
   React.useEffect(() => {
     let isMounted = true
 
@@ -110,6 +115,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, newSession) => {
       if (isMounted) {
+        const prevUserId = currentUserRef.current?.id
+        const nextUserId = newSession?.user?.id
+        if (event === "SIGNED_OUT" || (prevUserId && nextUserId !== prevUserId)) {
+          clearSyncMemoryCache()
+          if (prevUserId) {
+            clearCalendarCache(prevUserId)
+          }
+        }
         setSession(newSession)
         setUser(newSession?.user ?? null)
         setIsLoading(false)
@@ -165,6 +178,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const formatted = formatAuthErrorMessage(error)
         return { error: new Error(formatted) }
       }
+      clearSyncMemoryCache()
       setSession(data.session)
       setUser(data.user)
       return { error: null }
@@ -193,6 +207,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: new Error(formatted), user: null, session: null }
       }
       if (data.session) {
+        clearSyncMemoryCache()
         setSession(data.session)
         setUser(data.user)
       }
@@ -252,16 +267,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = React.useCallback(async () => {
     try {
-      const { error } = await supabase.auth.signOut()
-      if (!error) {
-        setSession(null)
-        setUser(null)
+      clearSyncMemoryCache()
+      if (user?.id) {
+        clearCalendarCache(user.id)
       }
+      setSession(null)
+      setUser(null)
+      const { error } = await supabase.auth.signOut()
       return { error: error ? new Error(error.message) : null }
     } catch (err) {
       return { error: err instanceof Error ? err : new Error("Unexpected error signing out") }
     }
-  }, [])
+  }, [user?.id])
 
   const value = React.useMemo<AuthContextValue>(
     () => ({

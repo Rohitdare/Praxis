@@ -15,7 +15,7 @@ import {
 } from "@/lib/inbox/service"
 
 export function InboxPage() {
-  const { user } = useAuth()
+  const { user, isLoading: isAuthLoading } = useAuth()
   const { syncState } = useSync()
   const navigate = useNavigate()
 
@@ -28,10 +28,11 @@ export function InboxPage() {
 
   const isOnline = typeof navigator !== "undefined" ? navigator.onLine : true
 
-  const userId = user?.id
+  const userId = isAuthLoading ? undefined : (user?.id ?? null)
 
   // Load items on mount, user change, or when sync transitions to synced
   const loadItems = React.useCallback(async () => {
+    if (userId === undefined) return
     try {
       const result = await fetchInboxItems({
         userId,
@@ -46,9 +47,17 @@ export function InboxPage() {
     }
   }, [userId])
 
+  const prevUserIdRef = React.useRef<string | null | undefined>(userId)
   React.useEffect(() => {
-    void loadItems()
-  }, [loadItems])
+    if (prevUserIdRef.current !== userId) {
+      setItems([])
+      setIsLoading(true)
+    }
+    prevUserIdRef.current = userId
+    if (userId !== undefined) {
+      void loadItems()
+    }
+  }, [loadItems, userId])
 
   // Re-fetch when browser comes back online
   React.useEffect(() => {

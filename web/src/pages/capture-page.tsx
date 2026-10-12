@@ -5,24 +5,42 @@ import { getRecentCaptures } from "@/lib/db/capture"
 import { triggerBackgroundSync } from "@/lib/sync/engine"
 import type { LocalItem } from "@/lib/db/schema"
 
+import { useAuth } from "@/lib/auth/auth-context"
+
 export function CapturePage() {
+  const { user, isLoading: isAuthLoading } = useAuth()
+  const userId = isAuthLoading ? undefined : (user?.id ?? null)
   const [recentItems, setRecentItems] = React.useState<LocalItem[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
 
   const loadRecentCaptures = React.useCallback(async () => {
+    if (userId === undefined) return
     try {
-      const items = await getRecentCaptures(5)
+      const items = await getRecentCaptures(5, userId)
       setRecentItems(items)
     } catch (err) {
       console.error("Failed to load recent captures:", err)
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [userId])
 
+  const prevUserIdRef = React.useRef(userId)
   React.useEffect(() => {
     let ignore = false
-    getRecentCaptures(5)
+    if (prevUserIdRef.current !== userId) {
+      prevUserIdRef.current = userId
+      setRecentItems([])
+      setIsLoading(true)
+    }
+
+    if (userId === undefined) {
+      setRecentItems([])
+      setIsLoading(true)
+      return
+    }
+
+    getRecentCaptures(5, userId)
       .then((items) => {
         if (!ignore) {
           setRecentItems(items)
@@ -40,7 +58,7 @@ export function CapturePage() {
     return () => {
       ignore = true
     }
-  }, [])
+  }, [userId])
 
   const handleCaptureSuccess = React.useCallback(() => {
     // Immediately reload the recent captures from IndexedDB

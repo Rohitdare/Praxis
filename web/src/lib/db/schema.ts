@@ -22,6 +22,7 @@ export type OutboxStatus = "pending" | "syncing" | "synced" | "failed"
 export interface OutboxRecord {
   id: string
   item_id: string
+  user_id?: string | null
   operation: OutboxOperation
   payload: LocalItem
   status: OutboxStatus

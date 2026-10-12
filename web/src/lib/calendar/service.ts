@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "@supabase/supabase-js"
 import { db } from "@/lib/db/index"
 import { supabase } from "@/lib/supabase/client"
 
@@ -68,11 +69,14 @@ interface ClassifyRpcEventResponse {
   }
 }
 
-const CACHE_KEY = "pm_cached_calendar_events"
+function getCacheKey(userId?: string | null): string {
+  return userId ? `pm_cached_calendar_events_${userId}` : "pm_cached_calendar_events"
+}
 
-function getCachedEvents(): CalendarEventRecord[] {
+export function getCachedEvents(userId?: string | null): CalendarEventRecord[] {
+  if (!userId) return []
   try {
-    const raw = localStorage.getItem(CACHE_KEY)
+    const raw = localStorage.getItem(getCacheKey(userId))
     if (!raw) return []
     return JSON.parse(raw) as CalendarEventRecord[]
   } catch {
@@ -80,11 +84,23 @@ function getCachedEvents(): CalendarEventRecord[] {
   }
 }
 
-function setCachedEvents(events: CalendarEventRecord[]): void {
+export function setCachedEvents(events: CalendarEventRecord[], userId?: string | null): void {
   try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify(events))
+    localStorage.setItem(getCacheKey(userId), JSON.stringify(events))
   } catch {
     // Non-fatal if storage full
+  }
+}
+
+export function clearCalendarCache(userId?: string | null): void {
+  try {
+    if (userId) {
+      localStorage.removeItem(getCacheKey(userId))
+    }
+    // Also remove generic legacy key if present
+    localStorage.removeItem("pm_cached_calendar_events")
+  } catch {
+    // Non-fatal
   }
 }
 
@@ -93,15 +109,20 @@ function setCachedEvents(events: CalendarEventRecord[]): void {
  * Online: Queries Supabase and refreshes local cache.
  * Offline: Falls back gracefully to local cache (ADR-02: cached viewing allowed offline).
  */
-export async function fetchCalendarEvents(userId: string): Promise<CalendarEventRecord[]> {
-  const isOffline = typeof navigator !== "undefined" && !navigator.onLine
+export async function fetchCalendarEvents(
+  userId: string,
+  options: { supabaseClient?: SupabaseClient; isOffline?: boolean } = {}
+): Promise<CalendarEventRecord[]> {
+  const isOffline =
+    options.isOffline ?? (typeof navigator !== "undefined" && !navigator.onLine)
+  const client = options.supabaseClient || supabase
 
   if (isOffline) {
-    return getCachedEvents()
+    return getCachedEvents(userId)
   }
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from("calendar_events")
       .select(`
         item_id,
@@ -126,7 +147,7 @@ export async function fetchCalendarEvents(userId: string): Promise<CalendarEvent
     if (error) {
       // If network failed, fall back to cache
       console.warn("Error fetching calendar events from Supabase, using cache:", error.message)
-      const cached = getCachedEvents()
+      const cached = getCachedEvents(userId)
       if (cached.length > 0) return cached
       throw new Error(`Failed to load events: ${error.message}`)
     }
@@ -145,10 +166,10 @@ export async function fetchCalendarEvents(userId: string): Promise<CalendarEvent
       updatedAt: row.updated_at,
     }))
 
-    setCachedEvents(events)
+    setCachedEvents(events, userId)
     return events
   } catch (err) {
-    const cached = getCachedEvents()
+    const cached = getCachedEvents(userId)
     if (cached.length > 0) return cached
     throw err
   }
@@ -258,8 +279,11 @@ export async function createCalendarEvent(
   }
 
   // Update local cache idempotently
-  const cached = getCachedEvents()
-  setCachedEvents([...cached.filter((e) => e.itemId !== newRecord.itemId), newRecord])
+  const cached = getCachedEvents(params.userId)
+  setCachedEvents(
+    [...cached.filter((e) => e.itemId !== newRecord.itemId), newRecord],
+    params.userId
+  )
 
   return newRecord
 }

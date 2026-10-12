@@ -25,8 +25,8 @@ import {
 } from "@/lib/notes/service"
 
 export function NotesPage() {
-  const { user } = useAuth()
-  const userId = user?.id
+  const { user, isLoading: isAuthLoading } = useAuth()
+  const userId = isAuthLoading ? undefined : (user?.id || undefined)
 
   const [notes, setNotes] = React.useState<NoteItem[]>([])
   const [selectedNoteId, setSelectedNoteId] = React.useState<string | null>(null)
@@ -75,7 +75,12 @@ export function NotesPage() {
 
   // Load notes on mount
   const loadNotesList = React.useCallback(async () => {
-    if (!userId) return
+    if (!userId) {
+      setNotes([])
+      setSelectedNoteId(null)
+      setIsLoading(false)
+      return
+    }
     setIsLoading(true)
     setLoadError(null)
     try {
@@ -90,9 +95,18 @@ export function NotesPage() {
     }
   }, [userId])
 
+  const prevUserIdRef = React.useRef<string | undefined>(userId)
   React.useEffect(() => {
+    if (prevUserIdRef.current !== userId) {
+      setNotes([])
+      setSelectedNoteId(null)
+      setTitle("")
+      setContent("")
+      setIsLoading(true)
+    }
+    prevUserIdRef.current = userId
     void loadNotesList()
-  }, [loadNotesList])
+  }, [loadNotesList, userId])
 
   // Synchronize editor inputs when selected note changes
   React.useEffect(() => {

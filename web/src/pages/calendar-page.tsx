@@ -41,8 +41,8 @@ interface DayCell {
 }
 
 export function CalendarPage() {
-  const { user } = useAuth()
-  const userId = user?.id
+  const { user, isLoading: isAuthLoading } = useAuth()
+  const userId = isAuthLoading ? undefined : (user?.id || undefined)
 
   const timezone = React.useMemo(() => getUserTimezone(), [])
   const isOnline = typeof navigator === "undefined" || navigator.onLine
@@ -85,9 +85,15 @@ export function CalendarPage() {
     }
   }, [userId])
 
+  const prevUserIdRef = React.useRef<string | undefined>(userId)
   React.useEffect(() => {
+    if (prevUserIdRef.current !== userId) {
+      setEvents([])
+      setIsLoading(true)
+    }
+    prevUserIdRef.current = userId
     void loadEvents()
-  }, [loadEvents])
+  }, [loadEvents, userId])
 
   // Month navigation helpers
   const handlePrevMonth = () => {

@@ -3,6 +3,7 @@ import { useAuth } from "@/lib/auth/auth-context"
 import { db } from "@/lib/db/index"
 import {
   clearLastError,
+  clearSyncMemoryCache,
   drainOutbox,
   getSyncEngineState,
   recoverStaleSyncingRecords,
@@ -22,6 +23,7 @@ const SyncContext = React.createContext<SyncContextValue | null>(null)
 
 export function SyncProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth()
+  const userId = user?.id || null
   const [syncState, setSyncState] = React.useState<SyncEngineState>({
     status: typeof navigator !== "undefined" && !navigator.onLine ? "offline" : "synced",
     pendingCount: 0,
@@ -29,29 +31,36 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     lastError: null,
   })
 
-  // 1. Subscribe to sync engine state updates
+  // 1. Subscribe to sync engine state updates for active user
   React.useEffect(() => {
     const unsubscribe = subscribeToSyncState((state) => {
       setSyncState(state)
-    })
+    }, db, userId)
     return unsubscribe
-  }, [])
+  }, [userId])
 
-  // 2. Application startup & stale record recovery
+  // 2. Application startup & stale record recovery & user boundary reset
   React.useEffect(() => {
     let ignore = false
+    clearSyncMemoryCache()
+    clearLastError()
+    setSyncState({
+      status: typeof navigator !== "undefined" && !navigator.onLine ? "offline" : "synced",
+      pendingCount: 0,
+      lastSyncedAt: null,
+      lastError: null,
+    })
 
     async function initializeSync() {
       try {
-        clearLastError()
         await recoverStaleSyncingRecords()
-        const state = await getSyncEngineState(db, user?.id)
+        const state = await getSyncEngineState(db, userId)
         if (!ignore) {
           setSyncState(state)
         }
 
         // Trigger sync if online, authenticated, and pending records exist
-        if (navigator.onLine && user && state.pendingCount > 0) {
+        if (navigator.onLine && userId && state.pendingCount > 0) {
           void drainOutbox()
         }
       } catch (err) {
@@ -64,7 +73,7 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     return () => {
       ignore = true
     }
-  }, [user])
+  }, [userId])
 
   // 3. Online/offline event listeners
   React.useEffect(() => {

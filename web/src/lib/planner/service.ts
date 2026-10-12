@@ -9,6 +9,7 @@ export interface PlannerServiceOptions {
   supabaseClient?: SupabaseClient
   database?: PersonalMemoryDB
   now?: Date
+  isOffline?: boolean
 }
 
 interface TaskQueryRow {
@@ -71,7 +72,8 @@ export async function fetchDailyPlannerData(
   const client = options.supabaseClient || supabase
   const database = options.database || db
   const refNow = options.now || new Date()
-  const isOffline = typeof navigator !== "undefined" && !navigator.onLine
+  const isOffline =
+    options.isOffline ?? (typeof navigator !== "undefined" && !navigator.onLine)
 
   if (isOffline || !isSupabaseConfigured) {
     return fetchDailyPlannerDataOffline(userId, targetDateStr, database, refNow)
@@ -355,7 +357,7 @@ export async function carryTaskForward(
  */
 export async function deletePlannerTask(
   itemId: string,
-  _userId?: string,
+  userId?: string,
   options: PlannerServiceOptions = {}
 ): Promise<void> {
   const client = options.supabaseClient || supabase
@@ -363,6 +365,7 @@ export async function deletePlannerTask(
   await softDeleteItem(itemId, {
     supabaseClient: client,
     database,
+    userId,
   })
 }
 

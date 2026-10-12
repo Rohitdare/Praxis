@@ -89,7 +89,7 @@ export async function resetFailedOutboxRecords(
 
   const failedRecords = await database.outbox.where("status").equals("failed").toArray()
   const eligibleRecords = failedRecords.filter(
-    (rec) => rec.payload.user_id === authenticatedUserId
+    (rec) => (rec.user_id || rec.payload?.user_id) === authenticatedUserId
   )
 
   if (eligibleRecords.length === 0) {
@@ -108,17 +108,28 @@ export async function resetFailedOutboxRecords(
     }
   })
 
-  // Clear lastErrorCache if no remaining failed records in database
-  const remainingFailed = await database.outbox.where("status").equals("failed").count()
+  // Clear lastErrorCache if no remaining failed records for this user
+  const remainingFailed = await database.outbox
+    .filter(
+      (rec) =>
+        (rec.user_id === authenticatedUserId || rec.payload?.user_id === authenticatedUserId) &&
+        rec.status === "failed"
+    )
+    .count()
   if (remainingFailed === 0) {
     lastErrorCache = null
   }
 
-  await notifySyncStateChange(database)
+  await notifySyncStateChange(database, authenticatedUserId)
   return eligibleRecords.length
 }
 
 export function clearLastError(): void {
+  lastErrorCache = null
+}
+
+export function clearSyncMemoryCache(): void {
+  lastSyncedAtCache = null
   lastErrorCache = null
 }
 
@@ -138,27 +149,40 @@ export async function getSyncEngineState(
     pendingCount = await database.outbox
       .filter(
         (rec) =>
-          rec.payload.user_id === authenticatedUserId &&
+          (rec.user_id === authenticatedUserId || rec.payload?.user_id === authenticatedUserId) &&
           (rec.status === "pending" || rec.status === "syncing")
       )
       .count()
 
     failedCount = await database.outbox
-      .filter((rec) => rec.payload.user_id === authenticatedUserId && rec.status === "failed")
+      .filter(
+        (rec) =>
+          (rec.user_id === authenticatedUserId || rec.payload?.user_id === authenticatedUserId) &&
+          rec.status === "failed"
+      )
       .count()
   } else {
+    // Unauthenticated: only check unauthenticated records (never leak authenticated user counts)
     pendingCount = await database.outbox
-      .where("status")
-      .equals("pending")
-      .or("status")
-      .equals("syncing")
+      .filter(
+        (rec) =>
+          !rec.user_id &&
+          !rec.payload?.user_id &&
+          (rec.status === "pending" || rec.status === "syncing")
+      )
       .count()
 
-    failedCount = await database.outbox.where("status").equals("failed").count()
+    failedCount = await database.outbox
+      .filter((rec) => !rec.user_id && !rec.payload?.user_id && rec.status === "failed")
+      .count()
   }
 
+  const metaKey = authenticatedUserId ? `last_synced_at_${authenticatedUserId}` : "last_synced_at"
   if (!lastSyncedAtCache) {
-    const meta = await database.sync_meta.get("last_synced_at")
+    let meta = await database.sync_meta.get(metaKey)
+    if (!meta && authenticatedUserId) {
+      meta = await database.sync_meta.get("last_synced_at")
+    }
     if (meta) {
       lastSyncedAtCache = meta.value
     }
@@ -168,7 +192,7 @@ export async function getSyncEngineState(
     isOffline,
     isSyncing: isDraining,
     pendingCount,
-    hasError: failedCount > 0 || !!lastErrorCache,
+    hasError: authenticatedUserId ? failedCount > 0 : (failedCount > 0 || !!lastErrorCache),
   })
 
   return {
@@ -184,17 +208,21 @@ export async function getSyncEngineState(
  */
 export function subscribeToSyncState(
   listener: StateListener,
-  database: PersonalMemoryDB = db
+  database: PersonalMemoryDB = db,
+  authenticatedUserId?: string | null
 ): () => void {
   stateListeners.add(listener)
-  void getSyncEngineState(database).then(listener)
+  void getSyncEngineState(database, authenticatedUserId).then(listener)
   return () => {
     stateListeners.delete(listener)
   }
 }
 
-export async function notifySyncStateChange(database: PersonalMemoryDB = db): Promise<void> {
-  const state = await getSyncEngineState(database)
+export async function notifySyncStateChange(
+  database: PersonalMemoryDB = db,
+  authenticatedUserId?: string | null
+): Promise<void> {
+  const state = await getSyncEngineState(database, authenticatedUserId)
   for (const listener of stateListeners) {
     listener(state)
   }
@@ -269,16 +297,32 @@ export async function drainOutbox(options: DrainOptions = {}): Promise<SyncResul
       for (const record of pendingRecords) {
         const item = record.payload
 
-        // Safety check 1: Unauthenticated captures must remain local-only in IndexedDB
-        if (!item.user_id) {
+        // Strict ownership verification:
+        // 1. Both record.user_id (if set) and item.user_id must match authenticatedUserId.
+        // 2. Unauthenticated captures (user_id is null/undefined) must remain local in IndexedDB.
+        // 3. Any record with conflicting ownership between outbox and payload must be quarantined/skipped.
+        const recordOwner = record.user_id || item?.user_id
+        if (!recordOwner) {
           result.skippedCount++
           continue
         }
 
-        // Safety check 2: Never sync another user's local records into active account (account switching)
-        if (item.user_id !== authenticatedUserId) {
+        if (record.user_id && item?.user_id && record.user_id !== item.user_id) {
+          result.skippedCount++
+          result.errors.push(`Record ${record.id} has conflicting owner metadata; skipped`)
+          continue
+        }
+
+        if (recordOwner !== authenticatedUserId) {
           result.skippedCount++
           continue
+        }
+
+        // Re-verify session has not expired or switched users before processing
+        const { data: activeSessionData } = await client.auth.getSession().catch(() => ({ data: { session: null } }))
+        if (activeSessionData.session?.user?.id !== authenticatedUserId) {
+          result.errors.push("Session changed during sync drain; aborted")
+          break
         }
 
         // Backoff delay enforcement: skip records backing off unless forced
@@ -294,10 +338,11 @@ export async function drainOutbox(options: DrainOptions = {}): Promise<SyncResul
         // Mark record as syncing
         const now = new Date().toISOString()
         await database.outbox.update(record.id, {
+          user_id: authenticatedUserId,
           status: "syncing",
           updated_at: now,
         })
-        await notifySyncStateChange(database)
+        await notifySyncStateChange(database, authenticatedUserId)
 
         // 4. Map to server item schema
         const serverPayload = mapLocalItemToServerItem(item, authenticatedUserId)
@@ -325,6 +370,7 @@ export async function drainOutbox(options: DrainOptions = {}): Promise<SyncResul
               })
 
               await database.outbox.update(record.id, {
+                user_id: authenticatedUserId,
                 status: "synced",
                 updated_at: successTime,
                 last_error: null,
@@ -332,6 +378,12 @@ export async function drainOutbox(options: DrainOptions = {}): Promise<SyncResul
 
               await database.sync_meta.put({
                 key: "last_synced_at",
+                value: successTime,
+                updated_at: successTime,
+              })
+
+              await database.sync_meta.put({
+                key: `last_synced_at_${authenticatedUserId}`,
                 value: successTime,
                 updated_at: successTime,
               })
@@ -365,6 +417,7 @@ export async function drainOutbox(options: DrainOptions = {}): Promise<SyncResul
           if (isClientValidationFailure || nextRetryCount >= MAX_RETRY_ATTEMPTS) {
             // Permanent failure: mark record failed, do not loop endlessly
             await database.outbox.update(record.id, {
+              user_id: authenticatedUserId,
               status: "failed",
               retry_count: nextRetryCount,
               last_error: errorMessage,
@@ -373,6 +426,7 @@ export async function drainOutbox(options: DrainOptions = {}): Promise<SyncResul
           } else {
             // Retryable error (network / transient / auth): keep pending for next cycle
             await database.outbox.update(record.id, {
+              user_id: authenticatedUserId,
               status: "pending",
               retry_count: nextRetryCount,
               last_error: errorMessage,
@@ -395,7 +449,13 @@ export async function drainOutbox(options: DrainOptions = {}): Promise<SyncResul
       }
 
       if (result.failureCount === 0) {
-        const remainingFailed = await database.outbox.where("status").equals("failed").count()
+        const remainingFailed = await database.outbox
+          .filter(
+            (rec) =>
+              (rec.user_id === authenticatedUserId || rec.payload?.user_id === authenticatedUserId) &&
+              rec.status === "failed"
+          )
+          .count()
         if (remainingFailed === 0) {
           lastErrorCache = null
         }
@@ -403,7 +463,8 @@ export async function drainOutbox(options: DrainOptions = {}): Promise<SyncResul
     } while (hasPendingDrain)
   } finally {
     isDraining = false
-    await notifySyncStateChange(database)
+    const { data: currentSession } = await client.auth.getSession().catch(() => ({ data: { session: null } }))
+    await notifySyncStateChange(database, currentSession?.session?.user?.id)
   }
 
   return result

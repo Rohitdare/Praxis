@@ -131,6 +131,7 @@ export async function captureItem(
   const outboxRecord: OutboxRecord = {
     id: outboxId,
     item_id: itemId,
+    user_id: input.userId || null,
     operation: "insert",
     payload: localItem,
     status: "pending",
@@ -160,13 +161,43 @@ export async function captureItem(
 
 /**
  * Retrieve the latest captures from IndexedDB (newest first).
+ * Strictly scoped to the authenticated user ID (or unauthenticated captures when userId is null).
  */
 export async function getRecentCaptures(
   limit = 5,
-  database: PersonalMemoryDB = db
+  userIdOrDatabase?: string | null | PersonalMemoryDB,
+  database?: PersonalMemoryDB
 ): Promise<LocalItem[]> {
-  const allActive = await database.local_items
-    .filter((item) => item.deleted_at === null)
+  const isDbSecondArg =
+    Boolean(userIdOrDatabase) &&
+    typeof userIdOrDatabase === "object" &&
+    "local_items" in (userIdOrDatabase as object)
+
+  const dbInstance: PersonalMemoryDB = isDbSecondArg
+    ? (userIdOrDatabase as PersonalMemoryDB)
+    : (database || db)
+
+  const resolvedUserId: string | null | undefined = isDbSecondArg
+    ? null
+    : (userIdOrDatabase as string | null | undefined)
+
+  // CRITICAL SECURITY INVARIANT (SEC-001):
+  // An unresolved user ID (undefined) during authentication initialization
+  // must NEVER grant anonymous or authenticated data access. Return empty array immediately.
+  if (resolvedUserId === undefined) {
+    return []
+  }
+
+  const allActive = await dbInstance.local_items
+    .filter((item) => {
+      if (item.deleted_at !== null) return false
+      if (resolvedUserId !== null) {
+        return item.user_id === resolvedUserId
+      }
+      // Confirmed anonymous session (resolvedUserId === null):
+      // Return only unauthenticated captures (user_id === null).
+      return item.user_id === null
+    })
     .toArray()
 
   return allActive
