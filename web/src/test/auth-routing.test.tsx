@@ -459,4 +459,39 @@ describe("Authentication & Routing (Email/Password + Google OAuth)", () => {
       )
     })
   })
+
+  it("12. Eye icon toggles password visibility between password and text", async () => {
+    vi.mocked(supabase.auth.getSession).mockResolvedValue({
+      data: { session: null },
+      error: null,
+    })
+
+    render(
+      <AuthProvider>
+        <MemoryRouter initialEntries={["/auth"]}>
+          <AppRoutes />
+        </MemoryRouter>
+      </AuthProvider>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: "Praxis" })).toBeInTheDocument()
+    })
+
+    const passwordInput = screen.getByLabelText("Password")
+    expect(passwordInput).toHaveAttribute("type", "password")
+
+    const toggleButton = screen.getByRole("button", { name: "Show password" })
+    expect(toggleButton).toBeInTheDocument()
+
+    // Click toggle button to reveal password
+    await userEvent.click(toggleButton)
+    expect(passwordInput).toHaveAttribute("type", "text")
+    expect(screen.getByRole("button", { name: "Hide password" })).toBeInTheDocument()
+
+    // Click toggle button again to hide password
+    await userEvent.click(screen.getByRole("button", { name: "Hide password" }))
+    expect(passwordInput).toHaveAttribute("type", "password")
+    expect(screen.getByRole("button", { name: "Show password" })).toBeInTheDocument()
+  })
 })
