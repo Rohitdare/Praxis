@@ -14,8 +14,6 @@
 
 <br />
 
-[![Frontend Tests](https://img.shields.io/badge/Frontend_Tests-210%2F210_Passing-brightgreen?style=flat-square&logo=vitest&logoColor=white)](https://vitest.dev)
-[![Backend Tests](https://img.shields.io/badge/Backend_Tests-8%2F8_Passing-brightgreen?style=flat-square&logo=pytest&logoColor=white)](https://pytest.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript_5-Strict_0_Errors-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![React](https://img.shields.io/badge/React_18-SPA-20232A?style=flat-square&logo=react&logoColor=61DAFB)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite_6-Bundler-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev/)
@@ -23,11 +21,10 @@
 [![Dexie](https://img.shields.io/badge/Dexie.js_v2-IndexedDB-1976D2?style=flat-square)](https://dexie.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL_15_+_RLS-3ECF8E?style=flat-square&logo=supabase&logoColor=white)](https://supabase.com/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-Python_3.14-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
+
 
 <br />
 
-[Features](#-key-features) · [Architecture](#-architecture--data-flow) · [Screenshots](#-interface-gallery) · [Quickstart](#-getting-started) · [Security & Isolation](#-security--multi-account-isolation-sec-001) · [API Reference](#-api-reference) · [Test Verification](#-testing--quality-assurance)
 
 </div>
 
@@ -134,10 +131,6 @@ graph LR
     end
 ```
 
-> 💡 **Detailed Documentation**:
-> - Interactive Architecture Explorer: [`.archify/praxis-system.html`](.archify/architecture-praxis-system-20261012-234600/praxis-system.html)
-> - Complete Repository Map: [`docs/project-structure.md`](docs/project-structure.md)
-> - Architecture Decision Records: [`docs/adrs/`](docs/adrs/)
 
 ---
 
@@ -226,10 +219,6 @@ Execute the versioned SQL migrations in your Supabase project in sequential orde
 | `POST` | `/api/v1/classify` | AI advisory classification and summarization for captured text | Optional |
 
 ---
-
-## 🧪 Testing & Quality Assurance
-
-Praxis maintains strict test-driven standards across the entire stack:
 
 ```bash
 # Run full frontend test suite (210 tests across 30 suites)
