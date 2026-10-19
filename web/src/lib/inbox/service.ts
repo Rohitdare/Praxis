@@ -327,9 +327,38 @@ export async function fetchInboxItems(
     }
 
     // Also include pending local items not yet uploaded (STRICTLY matching target user)
+    // or merge local edits that have non-generic titles not yet reflected on the server
     for (const local of localActive) {
-      if (local.user_id === options.userId && !itemsMap.has(local.id)) {
-        itemsMap.set(local.id, local)
+      if (local.user_id === options.userId) {
+        if (!itemsMap.has(local.id)) {
+          itemsMap.set(local.id, local)
+        } else {
+          const existing = itemsMap.get(local.id)!
+          const localHasCustomTitle = Boolean(
+            local.title &&
+            local.title.trim() &&
+            local.title.trim() !== "Untitled Note" &&
+            (!existing.title || existing.title.trim() === "Untitled Note")
+          )
+          const localIsNewer =
+            new Date(local.updated_at).getTime() >= new Date(existing.updated_at).getTime()
+
+          if (localHasCustomTitle || localIsNewer) {
+            itemsMap.set(local.id, {
+              ...existing,
+              title: (localHasCustomTitle || localIsNewer) && local.title ? local.title : existing.title,
+              content: localIsNewer && local.content !== undefined ? local.content : existing.content,
+              raw_input:
+                (localHasCustomTitle || localIsNewer) &&
+                local.raw_input &&
+                local.raw_input !== "Untitled Note" &&
+                local.raw_input !== "New note"
+                  ? local.raw_input
+                  : existing.raw_input,
+              updated_at: localIsNewer ? local.updated_at : existing.updated_at,
+            })
+          }
+        }
       }
     }
 
@@ -341,18 +370,41 @@ export async function fetchInboxItems(
     // Opportunistically cache server items locally for offline resilience
     for (const item of activeServerRows) {
       const existing = await database.local_items.get(item.id)
-      if (!existing) {
+      const existingHasCustomTitle = Boolean(
+        existing?.title && existing.title.trim() !== "Untitled Note"
+      )
+      const itemHasNoCustomTitle = !item.title || item.title.trim() === "Untitled Note"
+      const resolvedTitle =
+        existingHasCustomTitle && itemHasNoCustomTitle
+          ? existing!.title
+          : (item.title ?? null)
+
+      const existingHasCustomRawInput = Boolean(
+        existing?.raw_input &&
+        existing.raw_input.trim() !== "Untitled Note" &&
+        existing.raw_input.trim() !== "New note"
+      )
+      const itemHasNoCustomRawInput =
+        !item.raw_input ||
+        item.raw_input.trim() === "Untitled Note" ||
+        item.raw_input.trim() === "New note"
+      const resolvedRawInput =
+        existingHasCustomRawInput && itemHasNoCustomRawInput
+          ? existing!.raw_input
+          : item.raw_input
+
+      if (!existing || new Date(item.updated_at).getTime() >= new Date(existing.updated_at).getTime()) {
         await database.local_items.put({
           id: item.id,
           user_id: item.user_id,
-          raw_input: item.raw_input,
+          raw_input: resolvedRawInput,
           captured_at: item.captured_at,
           created_at: item.created_at,
           updated_at: item.updated_at,
           deleted_at: null,
           type: (item.type as ItemType) ?? "unclassified",
           status: (item.status as ItemStatus) ?? "inbox",
-          title: item.title ?? null,
+          title: resolvedTitle,
           content: item.content ?? null,
           synced: true,
         })

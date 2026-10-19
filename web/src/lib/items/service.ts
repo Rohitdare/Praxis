@@ -256,14 +256,37 @@ export async function updateItemClassification(
   // 3. Synchronize local Dexie cache
   if (updatedItemRow) {
     const existingLocal = await database.local_items.get(itemId)
-    if (existingLocal && existingLocal.user_id === userId) {
+    if (existingLocal && (existingLocal.user_id === userId || !existingLocal.user_id)) {
+      const resolvedRawInput =
+        existingLocal.raw_input === "Untitled Note" ||
+        existingLocal.raw_input === "New note" ||
+        !existingLocal.raw_input
+          ? updatedItemRow.title || existingLocal.raw_input
+          : existingLocal.raw_input
+
       await database.local_items.update(itemId, {
         user_id: userId,
         title: updatedItemRow.title,
         content: updatedItemRow.content,
+        raw_input: resolvedRawInput,
         type: updatedItemRow.type,
         status: updatedItemRow.status,
         updated_at: updatedItemRow.updated_at,
+        synced: true,
+      })
+    } else if (!existingLocal) {
+      await database.local_items.put({
+        id: itemId,
+        user_id: userId,
+        raw_input: updatedItemRow.raw_input || updatedItemRow.title || payload.title || "New " + payload.type,
+        captured_at: updatedItemRow.captured_at || new Date().toISOString(),
+        created_at: updatedItemRow.created_at || new Date().toISOString(),
+        updated_at: updatedItemRow.updated_at || new Date().toISOString(),
+        deleted_at: updatedItemRow.deleted_at || null,
+        title: updatedItemRow.title,
+        content: updatedItemRow.content,
+        type: updatedItemRow.type,
+        status: updatedItemRow.status,
         synced: true,
       })
     }

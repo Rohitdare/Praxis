@@ -108,30 +108,114 @@ export function NotesPage() {
     void loadNotesList()
   }, [loadNotesList, userId])
 
-  // Synchronize editor inputs when selected note changes
+  // Ref to hold latest values for auto-save, onBlur, and unmount flush
+  const latestValuesRef = React.useRef({
+    title,
+    content,
+    selectedNoteId,
+    userId,
+    isOnline,
+    activeNote,
+    isSaving,
+    hasUnsavedChanges,
+  })
+  latestValuesRef.current = {
+    title,
+    content,
+    selectedNoteId,
+    userId,
+    isOnline,
+    activeNote,
+    isSaving,
+    hasUnsavedChanges,
+  }
+
+  // Synchronize editor inputs ONLY when selected note ID changes
+  const prevSelectedIdRef = React.useRef<string | null>(null)
   React.useEffect(() => {
-    if (activeNote) {
-      setTitle(activeNote.title || "")
-      setContent(activeNote.content || "")
-      setSaveError(null)
-      setSaveSuccess(false)
-    } else {
-      setTitle("")
-      setContent("")
+    if (prevSelectedIdRef.current !== selectedNoteId) {
+      prevSelectedIdRef.current = selectedNoteId
+      if (activeNote) {
+        setTitle(activeNote.title || "")
+        setContent(activeNote.content || "")
+        setSaveError(null)
+        setSaveSuccess(false)
+      } else {
+        setTitle("")
+        setContent("")
+      }
     }
-  }, [activeNote])
+  }, [selectedNoteId, activeNote])
+
+  // Save current note
+  const handleSave = React.useCallback(async () => {
+    const {
+      title: curTitle,
+      content: curContent,
+      selectedNoteId: curId,
+      userId: curUserId,
+      isOnline: curOnline,
+      isSaving: currentlySaving,
+    } = latestValuesRef.current
+
+    if (!curId || !curUserId || !curOnline || currentlySaving) return
+
+    setIsSaving(true)
+    setSaveError(null)
+    setSaveSuccess(false)
+
+    try {
+      const trimmedTitle = curTitle.trim()
+      const effectiveTitle =
+        trimmedTitle ||
+        (curContent.trim() ? curContent.trim().split("\n")[0].slice(0, 60) : "Untitled Note")
+
+      const updated = await saveNote(
+        curId,
+        curUserId,
+        effectiveTitle,
+        curContent
+      )
+
+      setNotes((prev) =>
+        prev.map((n) => (n.id === updated.id ? updated : n))
+      )
+      setSaveSuccess(true)
+      setTimeout(() => setSaveSuccess(false), 2500)
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Failed to save note")
+    } finally {
+      setIsSaving(false)
+    }
+  }, [])
+
+  // Debounced auto-save (calm computing)
+  React.useEffect(() => {
+    if (!hasUnsavedChanges || !selectedNoteId || !userId || !isOnline) return
+
+    const timer = setTimeout(() => {
+      void handleSave()
+    }, 600)
+
+    return () => clearTimeout(timer)
+  }, [title, content, hasUnsavedChanges, selectedNoteId, userId, isOnline, handleSave])
+
+  // Flush pending changes on unmount or page navigation
+  React.useEffect(() => {
+    return () => {
+      const current = latestValuesRef.current
+      if (current.hasUnsavedChanges && current.selectedNoteId && current.userId && current.isOnline) {
+        void handleSave()
+      }
+    }
+  }, [handleSave])
 
   // Create new note action
   const handleCreateNote = async () => {
     if (!userId || !isOnline || isSaving) return
 
-    if (
-      hasUnsavedChanges &&
-      !window.confirm(
-        "You have unsaved changes on the current note. Discard and create a new note?"
-      )
-    ) {
-      return
+    if (hasUnsavedChanges) {
+      await handleSave()
     }
 
     setIsSaving(true)
@@ -147,34 +231,6 @@ export function NotesPage() {
       setIsSaving(false)
     }
   }
-
-  // Save current note
-  const handleSave = React.useCallback(async () => {
-    if (!selectedNoteId || !userId || !isOnline || isSaving) return
-
-    setIsSaving(true)
-    setSaveError(null)
-    setSaveSuccess(false)
-
-    try {
-      const updated = await saveNote(
-        selectedNoteId,
-        userId,
-        title || "Untitled Note",
-        content
-      )
-
-      setNotes((prev) =>
-        prev.map((n) => (n.id === updated.id ? updated : n))
-      )
-      setSaveSuccess(true)
-      setTimeout(() => setSaveSuccess(false), 3000)
-    } catch (err) {
-      setSaveError(err instanceof Error ? err.message : "Failed to save note")
-    } finally {
-      setIsSaving(false)
-    }
-  }, [selectedNoteId, userId, isOnline, isSaving, title, content])
 
   // Delete current note
   const handleDelete = async (noteIdToDelete: string) => {
@@ -221,19 +277,14 @@ export function NotesPage() {
     )
   }, [notes, searchQuery])
 
-  // Handle selecting a note with unsaved changes guard
+  // Handle selecting a note with auto-save of current note
   const handleSelectNote = (noteId: string) => {
     if (noteId === selectedNoteId) {
       setShowMobileEditor(true)
       return
     }
-    if (
-      hasUnsavedChanges &&
-      !window.confirm(
-        "You have unsaved changes. Switch to another note without saving?"
-      )
-    ) {
-      return
+    if (hasUnsavedChanges) {
+      void handleSave()
     }
     setSelectedNoteId(noteId)
     setShowMobileEditor(true)
@@ -448,8 +499,8 @@ export function NotesPage() {
 
                   <Button
                     size="sm"
-                    onClick={handleSave}
-                    disabled={!isOnline || isSaving || !hasUnsavedChanges}
+                    onClick={() => void handleSave()}
+                    disabled={!isOnline || isSaving}
                     className="text-xs h-8 px-3 min-h-[36px] sm:h-7 inline-flex items-center gap-1 shadow-2xs rounded-lg font-medium"
                     aria-label="Save note"
                   >
@@ -480,6 +531,24 @@ export function NotesPage() {
                   type="text"
                   placeholder="Note Title..."
                   value={title}
+                  onFocus={(e) => {
+                    if (title === "Untitled Note") {
+                      e.target.select()
+                    }
+                  }}
+                  onBlur={() => {
+                    if (hasUnsavedChanges) {
+                      void handleSave()
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault()
+                      if (hasUnsavedChanges) {
+                        void handleSave()
+                      }
+                    }
+                  }}
                   onChange={(e) => setTitle(e.target.value)}
                   disabled={!isOnline || isSaving}
                   className="font-heading text-lg md:text-xl font-bold tracking-tight border-none px-0 shadow-none focus-visible:ring-0 bg-transparent placeholder:text-muted-foreground/40 text-foreground"
@@ -492,6 +561,11 @@ export function NotesPage() {
                 <textarea
                   placeholder="Write your note or thoughts here (supports plain text and Markdown)..."
                   value={content}
+                  onBlur={() => {
+                    if (hasUnsavedChanges) {
+                      void handleSave()
+                    }
+                  }}
                   onChange={(e) => setContent(e.target.value)}
                   disabled={!isOnline || isSaving}
                   rows={14}

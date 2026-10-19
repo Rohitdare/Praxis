@@ -43,7 +43,17 @@ export function RecentCaptures({ items, isLoading, onSelectCapture }: RecentCapt
         <ul className="divide-y divide-border/50 rounded-xl border border-border/80 bg-card/70 overflow-hidden shadow-2xs">
           {items.map((item) => {
             const isUrl = isLikelyUrl(item.raw_input)
-            const displayTitle = item.title?.trim() || item.raw_input
+            const titleText = item.title?.trim()
+            const rawText = item.raw_input?.trim()
+            const contentText = item.content?.trim()
+            const displayTitle =
+              titleText && titleText !== "Untitled Note"
+                ? titleText
+                : rawText && rawText !== "Untitled Note" && rawText !== "New note"
+                ? rawText
+                : contentText
+                ? contentText.split("\n")[0].slice(0, 80)
+                : titleText || rawText || "Untitled Note"
             return (
               <li key={item.id} className="transition-colors">
                 <Link

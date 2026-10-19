@@ -84,6 +84,28 @@ export function ItemRow({
 
   const busy = isDeleting || internalDeleting
 
+  // Resolve display title: Prioritize non-generic title, fallback to raw input or content
+  const titleText = item.title?.trim()
+  const rawText = item.raw_input?.trim()
+  const contentText = item.content?.trim()
+
+  const displayTitle =
+    titleText && titleText !== "Untitled Note"
+      ? titleText
+      : rawText && rawText !== "Untitled Note" && rawText !== "New note"
+      ? rawText
+      : contentText
+      ? contentText.split("\n")[0].slice(0, 100)
+      : titleText || rawText || "Untitled Note"
+
+  // Subtitle snippet preview if there is extra body text different from the display title
+  const displaySnippet =
+    contentText && contentText !== displayTitle
+      ? contentText
+      : rawText && rawText !== displayTitle && rawText !== "Untitled Note" && rawText !== "New note"
+      ? rawText
+      : null
+
   return (
     <div
       role="article"
@@ -108,12 +130,17 @@ export function ItemRow({
           {getItemTypeIcon(item.type)}
         </div>
 
-        <div className="space-y-1.5 min-w-0 flex-1">
-          <p className="text-sm font-normal text-foreground leading-relaxed break-words [overflow-wrap:anywhere] whitespace-pre-wrap">
-            {item.raw_input}
+        <div className="space-y-1 min-w-0 flex-1">
+          <p className="text-sm font-medium text-foreground leading-snug break-words [overflow-wrap:anywhere]">
+            {displayTitle}
           </p>
+          {displaySnippet && (
+            <p className="text-xs text-muted-foreground line-clamp-2 break-words [overflow-wrap:anywhere]">
+              {displaySnippet}
+            </p>
+          )}
 
-          <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap pt-0.5">
             <span className="font-medium text-foreground/80">{getItemTypeLabel(item.type)}</span>
             <span aria-hidden="true" className="text-muted-foreground/40">·</span>
             <time dateTime={item.captured_at}>{formatRelativeTime(item.captured_at)}</time>
