@@ -30,6 +30,7 @@ export interface Database {
           ai_enabled: boolean
           ai_public_resources: boolean
           ai_personal_types: boolean
+          feature_preferences: Record<string, boolean>
           created_at: string
           updated_at: string
         }
@@ -39,6 +40,7 @@ export interface Database {
           ai_enabled?: boolean
           ai_public_resources?: boolean
           ai_personal_types?: boolean
+          feature_preferences?: Record<string, boolean>
           created_at?: string
           updated_at?: string
         }
@@ -48,6 +50,7 @@ export interface Database {
           ai_enabled?: boolean
           ai_public_resources?: boolean
           ai_personal_types?: boolean
+          feature_preferences?: Record<string, boolean>
           created_at?: string
           updated_at?: string
         }

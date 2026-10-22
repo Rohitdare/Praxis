@@ -3,9 +3,11 @@ import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { MemoryRouter } from "react-router-dom"
 import { SettingsPage } from "@/pages/settings-page"
+import { FeatureProvider } from "@/lib/features/feature-context"
 import * as AuthContextModule from "@/lib/auth/auth-context"
 import * as SyncContextModule from "@/lib/sync/sync-context"
 import * as ExportServiceModule from "@/lib/export/service"
+import * as PreferencesModule from "@/lib/features/preferences"
 
 describe("Phase 1E: SettingsPage Component", () => {
   const mockUser = {
@@ -22,7 +24,17 @@ describe("Phase 1E: SettingsPage Component", () => {
     errors: [],
   })
 
+  const renderSettings = () =>
+    render(
+      <MemoryRouter>
+        <FeatureProvider>
+          <SettingsPage />
+        </FeatureProvider>
+      </MemoryRouter>
+    )
+
   beforeEach(() => {
+    window.localStorage.clear()
     vi.clearAllMocks()
 
     vi.spyOn(AuthContextModule, "useAuth").mockReturnValue({
@@ -48,14 +60,17 @@ describe("Phase 1E: SettingsPage Component", () => {
       triggerSync: vi.fn(),
       retrySync: mockRetrySync,
     })
+
+    vi.spyOn(PreferencesModule, "saveUserFeaturePreference").mockImplementation(
+      async (_userId, featureId, enabled, current) => ({
+        ...current,
+        [featureId]: enabled,
+      })
+    )
   })
 
-  it("1. renders Account & Security information, Sync section, and Data Export section", () => {
-    render(
-      <MemoryRouter>
-        <SettingsPage />
-      </MemoryRouter>
-    )
+  it("1. renders Account & Security information, Features section, Sync section, and Data Export section", () => {
+    renderSettings()
 
     expect(screen.getByRole("heading", { name: "Settings" })).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: "Account & Security" })).toBeInTheDocument()
@@ -63,17 +78,23 @@ describe("Phase 1E: SettingsPage Component", () => {
     expect(screen.getByText("test-user-uuid-1234")).toBeInTheDocument()
     expect(screen.getByText("Email & Password")).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Sign out" })).toBeInTheDocument()
+
+    // Features section
+    expect(screen.getByRole("heading", { name: "Features" })).toBeInTheDocument()
+    expect(screen.getByText("Workout Planner")).toBeInTheDocument()
+    expect(
+      screen.getByText("Create workout routines and organize training sessions.")
+    ).toBeInTheDocument()
+    expect(screen.getByText("Diet Planner")).toBeInTheDocument()
+    expect(screen.getByText("Plan meals and organize daily nutrition.")).toBeInTheDocument()
+
     expect(screen.getByRole("heading", { name: "Synchronization" })).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: "Data Portability & Export" })).toBeInTheDocument()
     expect(screen.getByText(/Local Storage & Device Security/i)).toBeInTheDocument()
   })
 
   it("2. Sign out button opens confirmation dialog and confirms or cancels cleanly", async () => {
-    render(
-      <MemoryRouter>
-        <SettingsPage />
-      </MemoryRouter>
-    )
+    renderSettings()
 
     const initialSignOutBtn = screen.getByRole("button", { name: "Sign out" })
     await userEvent.click(initialSignOutBtn)
@@ -93,8 +114,9 @@ describe("Phase 1E: SettingsPage Component", () => {
     expect(screen.getByRole("dialog")).toBeInTheDocument()
 
     // In the dialog, click the destructive Sign out button
-    const confirmSignOutBtn = screen.getByRole("dialog").querySelector("button.bg-destructive") ||
-      screen.getAllByRole("button", { name: "Sign out" }).find(b => b.closest('[role="dialog"]'))
+    const confirmSignOutBtn =
+      screen.getByRole("dialog").querySelector("button.bg-destructive") ||
+      screen.getAllByRole("button", { name: "Sign out" }).find((b) => b.closest('[role="dialog"]'))
     expect(confirmSignOutBtn).toBeTruthy()
     await userEvent.click(confirmSignOutBtn!)
 
@@ -102,11 +124,7 @@ describe("Phase 1E: SettingsPage Component", () => {
   })
 
   it("3. Retry Sync button invokes retrySync(true) and displays feedback message", async () => {
-    render(
-      <MemoryRouter>
-        <SettingsPage />
-      </MemoryRouter>
-    )
+    renderSettings()
 
     const retryBtn = screen.getByRole("button", { name: "Retry sync now" })
     await userEvent.click(retryBtn)
@@ -131,15 +149,13 @@ describe("Phase 1E: SettingsPage Component", () => {
       retrySync: mockRetrySync,
     })
 
-    render(
-      <MemoryRouter>
-        <SettingsPage />
-      </MemoryRouter>
-    )
+    renderSettings()
 
     expect(screen.getByRole("alert")).toBeInTheDocument()
     expect(screen.getByText(/relation "public.items" does not exist/i)).toBeInTheDocument()
-    expect(screen.getByText(/supabase\/migrations\/20261008000000_initial_schema\.sql/i)).toBeInTheDocument()
+    expect(
+      screen.getByText(/supabase\/migrations\/20261008000000_initial_schema\.sql/i)
+    ).toBeInTheDocument()
   })
 
   it("5. Download JSON Export triggers gatherExportData and displays export summary", async () => {
@@ -181,11 +197,7 @@ describe("Phase 1E: SettingsPage Component", () => {
       "personal-memory-export-2026-10-09-143000.json"
     )
 
-    render(
-      <MemoryRouter>
-        <SettingsPage />
-      </MemoryRouter>
-    )
+    renderSettings()
 
     const exportBtn = screen.getByRole("button", { name: "Export all data as JSON" })
     await userEvent.click(exportBtn)
@@ -238,11 +250,7 @@ describe("Phase 1E: SettingsPage Component", () => {
       "personal-memory-export-offline.json"
     )
 
-    render(
-      <MemoryRouter>
-        <SettingsPage />
-      </MemoryRouter>
-    )
+    renderSettings()
 
     const exportBtn = screen.getByRole("button", { name: "Export all data as JSON" })
     await userEvent.click(exportBtn)
@@ -250,6 +258,59 @@ describe("Phase 1E: SettingsPage Component", () => {
     await waitFor(() => {
       expect(screen.getByText(/Notice: Incomplete Export/i)).toBeInTheDocument()
       expect(screen.getByText(/Export created while offline/i)).toBeInTheDocument()
+    })
+  })
+
+  it("7. toggles Workout Planner and Diet Planner switches independently", async () => {
+    const user = userEvent.setup()
+    renderSettings()
+
+    const workoutSwitch = screen.getByRole("switch", { name: "Toggle Workout Planner" })
+    const dietSwitch = screen.getByRole("switch", { name: "Toggle Diet Planner" })
+
+    // Initially disabled by default
+    expect(workoutSwitch).toHaveAttribute("aria-checked", "false")
+    expect(dietSwitch).toHaveAttribute("aria-checked", "false")
+
+    // Enable Workout Planner
+    await user.click(workoutSwitch)
+    await waitFor(() => {
+      expect(workoutSwitch).toHaveAttribute("aria-checked", "true")
+      expect(dietSwitch).toHaveAttribute("aria-checked", "false")
+    })
+
+    // Enable Diet Planner
+    await user.click(dietSwitch)
+    await waitFor(() => {
+      expect(workoutSwitch).toHaveAttribute("aria-checked", "true")
+      expect(dietSwitch).toHaveAttribute("aria-checked", "true")
+    })
+
+    // Disable Workout Planner independently
+    await user.click(workoutSwitch)
+    await waitFor(() => {
+      expect(workoutSwitch).toHaveAttribute("aria-checked", "false")
+      expect(dietSwitch).toHaveAttribute("aria-checked", "true")
+    })
+  })
+
+  it("8. rolls back switch and displays error message when saving preference fails", async () => {
+    const user = userEvent.setup()
+    vi.spyOn(PreferencesModule, "saveUserFeaturePreference").mockRejectedValue(
+      new Error("Database connection timed out")
+    )
+
+    renderSettings()
+
+    const workoutSwitch = screen.getByRole("switch", { name: "Toggle Workout Planner" })
+    expect(workoutSwitch).toHaveAttribute("aria-checked", "false")
+
+    await user.click(workoutSwitch)
+
+    // Should rollback to false and display error banner
+    await waitFor(() => {
+      expect(workoutSwitch).toHaveAttribute("aria-checked", "false")
+      expect(screen.getByText("Database connection timed out")).toBeInTheDocument()
     })
   })
 })

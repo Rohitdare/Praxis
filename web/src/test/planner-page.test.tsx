@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 import { render, screen, fireEvent, waitFor } from "@testing-library/react"
 import { BrowserRouter } from "react-router-dom"
 import { PlannerPage } from "@/pages/planner-page"
+import { FeatureProvider } from "@/lib/features/feature-context"
 import * as plannerService from "@/lib/planner/service"
 import type { DailyPlannerData, PlannerTask, WeeklyStats } from "@/lib/planner/types"
 
@@ -108,12 +109,17 @@ describe("PlannerPage Component", () => {
     }))
   })
 
-  it("renders planner header, tasks list, and overdue banner", async () => {
+  const renderPlanner = () =>
     render(
       <BrowserRouter>
-        <PlannerPage />
+        <FeatureProvider>
+          <PlannerPage />
+        </FeatureProvider>
       </BrowserRouter>
     )
+
+  it("renders planner header, tasks list, and overdue banner", async () => {
+    renderPlanner()
 
     await waitFor(() => {
       expect(screen.getByText("Finish quarterly report")).toBeInTheDocument()
@@ -126,11 +132,7 @@ describe("PlannerPage Component", () => {
   })
 
   it("adds a new task through the quick-add input", async () => {
-    render(
-      <BrowserRouter>
-        <PlannerPage />
-      </BrowserRouter>
-    )
+    renderPlanner()
 
     await waitFor(() => {
       expect(screen.getByText("Finish quarterly report")).toBeInTheDocument()
@@ -151,11 +153,7 @@ describe("PlannerPage Component", () => {
   })
 
   it("toggles task completion when clicking the checkbox", async () => {
-    render(
-      <BrowserRouter>
-        <PlannerPage />
-      </BrowserRouter>
-    )
+    renderPlanner()
 
     await waitFor(() => {
       expect(screen.getByText("Finish quarterly report")).toBeInTheDocument()
@@ -174,11 +172,7 @@ describe("PlannerPage Component", () => {
   })
 
   it("carries forward an overdue task to today", async () => {
-    render(
-      <BrowserRouter>
-        <PlannerPage />
-      </BrowserRouter>
-    )
+    renderPlanner()
 
     await waitFor(() => {
       expect(screen.getByText("Pay server bill")).toBeInTheDocument()
@@ -197,11 +191,7 @@ describe("PlannerPage Component", () => {
   })
 
   it("switches to Weekly view and displays weekly statistics and chart", async () => {
-    render(
-      <BrowserRouter>
-        <PlannerPage />
-      </BrowserRouter>
-    )
+    renderPlanner()
 
     await waitFor(() => {
       expect(screen.getByText("Finish quarterly report")).toBeInTheDocument()

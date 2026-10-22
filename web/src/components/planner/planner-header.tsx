@@ -1,13 +1,15 @@
-import { BarChart3, Calendar, CheckSquare, ChevronLeft, ChevronRight } from "lucide-react"
+import { BarChart3, Calendar, CheckSquare, ChevronLeft, ChevronRight, Dumbbell, UtensilsCrossed } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import type { FeatureDefinition } from "@/lib/features/types"
 
 interface PlannerHeaderProps {
   currentDate: string // YYYY-MM-DD
   onDateChange: (newDateStr: string) => void
   completedCount: number
   totalCount: number
-  activeTab: "daily" | "weekly"
-  onTabChange: (tab: "daily" | "weekly") => void
+  activeTab: string
+  onTabChange: (tab: any) => void
+  enabledModules?: FeatureDefinition[]
 }
 
 export function PlannerHeader({
@@ -17,6 +19,7 @@ export function PlannerHeader({
   totalCount,
   activeTab,
   onTabChange,
+  enabledModules = [],
 }: PlannerHeaderProps) {
   const currentObj = new Date(`${currentDate}T00:00:00`)
   const isToday =
@@ -50,8 +53,22 @@ export function PlannerHeader({
       <div className="space-y-1">
         <div className="flex items-center gap-2.5 flex-wrap">
           <h1 className="text-xl sm:text-2xl font-heading font-extrabold tracking-tight text-foreground flex items-center gap-2">
-            <CheckSquare className="size-5 sm:size-6 text-primary shrink-0" />
-            <span>To-Do Planner</span>
+            {activeTab === "workouts" ? (
+              <>
+                <Dumbbell className="size-5 sm:size-6 text-primary shrink-0" />
+                <span>Workout Planner</span>
+              </>
+            ) : activeTab === "diet" ? (
+              <>
+                <UtensilsCrossed className="size-5 sm:size-6 text-primary shrink-0" />
+                <span>Diet Planner</span>
+              </>
+            ) : (
+              <>
+                <CheckSquare className="size-5 sm:size-6 text-primary shrink-0" />
+                <span>To-Do Planner</span>
+              </>
+            )}
           </h1>
 
           {/* Progress summary badge */}
@@ -62,7 +79,7 @@ export function PlannerHeader({
           )}
         </div>
 
-        {activeTab === "daily" && (
+        {activeTab !== "weekly" && (
           <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground pt-0.5">
             <span className="font-semibold text-foreground text-sm">
               {formattedDateString}
@@ -108,11 +125,11 @@ export function PlannerHeader({
         )}
       </div>
 
-      {/* Right: Tab Switcher (Daily vs Weekly) */}
+      {/* Right: Tab Switcher (Daily vs Weekly vs Optional Modules) */}
       <div
         role="tablist"
         aria-label="Planner views"
-        className="w-full sm:w-auto grid grid-cols-2 sm:flex items-center gap-1 p-1 rounded-xl bg-muted/40 border border-border/60"
+        className="w-full sm:w-auto flex flex-wrap items-center gap-1 p-1 rounded-xl bg-muted/40 border border-border/60"
       >
         <button
           type="button"
@@ -145,6 +162,38 @@ export function PlannerHeader({
           <BarChart3 className="size-3.5" />
           <span>Weekly Stats</span>
         </button>
+
+        {enabledModules.map((mod) => {
+          const tabKey =
+            mod.id === "workout_planner"
+              ? "workouts"
+              : mod.id === "diet_planner"
+              ? "diet"
+              : mod.id
+          const isSelected = activeTab === tabKey
+          return (
+            <button
+              key={mod.id}
+              type="button"
+              role="tab"
+              aria-selected={isSelected}
+              onClick={() => onTabChange(tabKey)}
+              className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium min-h-[36px] sm:min-h-0 transition-all ${
+                isSelected
+                  ? "bg-card text-foreground font-semibold shadow-2xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              aria-label={`${mod.name} view`}
+            >
+              {mod.id === "workout_planner" ? (
+                <Dumbbell className="size-3.5" />
+              ) : mod.id === "diet_planner" ? (
+                <UtensilsCrossed className="size-3.5" />
+              ) : null}
+              <span>{mod.name}</span>
+            </button>
+          )
+        })}
       </div>
     </header>
   )

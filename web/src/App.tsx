@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
 import { AuthProvider } from "@/lib/auth/auth-context"
 import { SyncProvider } from "@/lib/sync/sync-context"
 import { ThemeProvider } from "@/lib/theme/theme-context"
+import { FeatureProvider } from "@/lib/features/feature-context"
 import { ProtectedRoute } from "@/components/auth/protected-route"
 import { PublicRoute } from "@/components/auth/public-route"
 import { AppShell } from "@/components/layout/app-shell"
@@ -45,6 +46,7 @@ export function AppRoutes() {
             <Route path="/capture" element={<CapturePage />} />
             <Route path="/inbox" element={<InboxPage />} />
             <Route path="/planner" element={<PlannerPage />} />
+            <Route path="/planner/:submodule" element={<PlannerPage />} />
             <Route path="/notes" element={<NotesPage />} />
             <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/items/:id" element={<ItemDetailPage />} />
@@ -64,9 +66,11 @@ export default function App() {
     <ThemeProvider>
       <AuthProvider>
         <SyncProvider>
-          <BrowserRouter>
-            <AppRoutes />
-          </BrowserRouter>
+          <FeatureProvider>
+            <BrowserRouter>
+              <AppRoutes />
+            </BrowserRouter>
+          </FeatureProvider>
         </SyncProvider>
       </AuthProvider>
     </ThemeProvider>

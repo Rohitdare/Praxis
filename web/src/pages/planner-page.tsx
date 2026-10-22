@@ -1,6 +1,8 @@
 import * as React from "react"
+import { useNavigate, useParams } from "react-router-dom"
 import { AlertCircle, WifiOff } from "lucide-react"
 import { useAuth } from "@/lib/auth/auth-context"
+import { useFeatures } from "@/lib/features/feature-context"
 import {
   carryTaskForward,
   createPlannerTask,
@@ -16,12 +18,17 @@ import { RolloverBanner } from "@/components/planner/rollover-banner"
 import { TaskListSection } from "@/components/planner/task-list-section"
 import { TaskQuickAdd } from "@/components/planner/task-quick-add"
 import { WeeklyDashboard } from "@/components/planner/weekly-dashboard"
+import { WorkoutPlannerView } from "@/components/planner/workout-planner-view"
+import { DietPlannerView } from "@/components/planner/diet-planner-view"
 
 export function PlannerPage() {
   const { user, isLoading: isAuthLoading } = useAuth()
   const userId = isAuthLoading ? "" : (user?.id || "")
+  const { submodule } = useParams<{ submodule?: string }>()
+  const navigate = useNavigate()
+  const { enabledPlannerModules, isFeatureEnabled } = useFeatures()
 
-  const [activeTab, setActiveTab] = React.useState<"daily" | "weekly">("daily")
+  const [activeTab, setActiveTab] = React.useState<string>("daily")
   const [selectedDate, setSelectedDate] = React.useState<string>(() =>
     formatLocalDateString(new Date())
   )
@@ -108,6 +115,51 @@ export function PlannerPage() {
       void loadWeeklyStats()
     }
   }, [activeTab, loadWeeklyStats])
+
+  // Synchronize route param with active tab and feature preferences
+  React.useEffect(() => {
+    if (submodule === "workouts") {
+      if (isFeatureEnabled("workout_planner")) {
+        setActiveTab("workouts")
+      } else {
+        setActiveTab("daily")
+        navigate("/planner", { replace: true })
+      }
+    } else if (submodule === "diet") {
+      if (isFeatureEnabled("diet_planner")) {
+        setActiveTab("diet")
+      } else {
+        setActiveTab("daily")
+        navigate("/planner", { replace: true })
+      }
+    }
+  }, [submodule, isFeatureEnabled, navigate])
+
+  // Fallback to daily tab if currently active module gets disabled
+  React.useEffect(() => {
+    if (activeTab === "workouts" && !isFeatureEnabled("workout_planner")) {
+      setActiveTab("daily")
+      if (submodule === "workouts") {
+        navigate("/planner", { replace: true })
+      }
+    } else if (activeTab === "diet" && !isFeatureEnabled("diet_planner")) {
+      setActiveTab("daily")
+      if (submodule === "diet") {
+        navigate("/planner", { replace: true })
+      }
+    }
+  }, [activeTab, isFeatureEnabled, submodule, navigate])
+
+  const handleTabChange = (newTab: string) => {
+    setActiveTab(newTab)
+    if (newTab === "workouts") {
+      navigate("/planner/workouts")
+    } else if (newTab === "diet") {
+      navigate("/planner/diet")
+    } else if (submodule) {
+      navigate("/planner")
+    }
+  }
 
   // Action: Add Task
   const handleAddTask = async (
@@ -226,7 +278,8 @@ export function PlannerPage() {
         completedCount={dailyData?.completedTodayCount ?? 0}
         totalCount={dailyData?.tasks?.length ?? 0}
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
+        enabledModules={enabledPlannerModules}
       />
 
       {/* Error Alert */}
@@ -292,6 +345,16 @@ export function PlannerPage() {
           onWeekChange={setWeekReferenceDate}
           isLoading={isLoadingWeekly}
         />
+      )}
+
+      {/* Workout Planner Tab */}
+      {activeTab === "workouts" && isFeatureEnabled("workout_planner") && (
+        <WorkoutPlannerView userId={userId} selectedDate={selectedDate} />
+      )}
+
+      {/* Diet Planner Tab */}
+      {activeTab === "diet" && isFeatureEnabled("diet_planner") && (
+        <DietPlannerView userId={userId} selectedDate={selectedDate} />
       )}
     </div>
   )

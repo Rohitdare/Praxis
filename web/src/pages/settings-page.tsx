@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"
 import {
   AlertCircle,
   AlertTriangle,
+  Boxes,
   CheckCircle2,
   Download,
   Loader2,
@@ -13,7 +14,9 @@ import {
 } from "lucide-react"
 import { useAuth } from "@/lib/auth/auth-context"
 import { useSync } from "@/lib/sync/sync-context"
+import { useFeatures } from "@/lib/features/feature-context"
 import { Button } from "@/components/ui/button"
+import { Switch } from "@/components/ui/switch"
 import { gatherExportData, triggerJsonDownload } from "@/lib/export/service"
 import type { ExportDataPayload } from "@/lib/export/types"
 
@@ -33,6 +36,32 @@ export function SettingsPage() {
   const [exportError, setExportError] = React.useState<string | null>(null)
 
   const [showSignOutConfirm, setShowSignOutConfirm] = React.useState(false)
+
+  const {
+    features,
+    isFeatureEnabled,
+    setFeatureEnabled,
+    isLoading: isFeaturesLoading,
+    error: featureContextError,
+    clearError: clearFeatureError,
+  } = useFeatures()
+
+  const [togglingMap, setTogglingMap] = React.useState<Record<string, boolean>>({})
+  const [toggleError, setToggleError] = React.useState<string | null>(null)
+
+  const handleToggleFeature = async (featureId: string, enabled: boolean) => {
+    if (togglingMap[featureId]) return
+    setTogglingMap((prev) => ({ ...prev, [featureId]: true }))
+    setToggleError(null)
+    clearFeatureError()
+    try {
+      await setFeatureEnabled(featureId, enabled)
+    } catch (err) {
+      setToggleError(err instanceof Error ? err.message : "Failed to update feature preference")
+    } finally {
+      setTogglingMap((prev) => ({ ...prev, [featureId]: false }))
+    }
+  }
 
   React.useEffect(() => {
     if (!showSignOutConfirm) return
@@ -206,6 +235,82 @@ export function SettingsPage() {
           </div>
         </div>
       )}
+
+      {/* Features & Optional Modules Section */}
+      <section className="p-5 md:p-6 rounded-xl border border-border/80 bg-card/60 space-y-4 shadow-2xs">
+        <header className="space-y-1">
+          <div className="flex items-center justify-between">
+            <h2 className="font-heading font-bold text-sm tracking-tight text-foreground flex items-center gap-2">
+              <Boxes className="size-4 text-muted-foreground" aria-hidden="true" />
+              Features
+            </h2>
+            {isFeaturesLoading && (
+              <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+                <Loader2 className="size-3 animate-spin" /> Loading
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Enable or disable optional modules for your workspace. Enabled modules appear inside the Planner section.
+          </p>
+        </header>
+
+        {(toggleError || featureContextError) && (
+          <div
+            role="alert"
+            className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-xs text-destructive flex items-center justify-between gap-2"
+          >
+            <span>{toggleError || featureContextError}</span>
+            <button
+              type="button"
+              onClick={() => {
+                setToggleError(null)
+                clearFeatureError()
+              }}
+              className="text-xs font-medium hover:underline shrink-0"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
+        <div className="divide-y divide-border/50">
+          {features.map((feature) => {
+            const isEnabled = isFeatureEnabled(feature.id)
+            const isToggling = Boolean(togglingMap[feature.id])
+            return (
+              <div
+                key={feature.id}
+                className="flex items-center justify-between gap-4 py-3.5 first:pt-1 last:pb-1"
+              >
+                <div className="space-y-0.5 min-w-0 pr-2">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-foreground text-sm">
+                      {feature.name}
+                    </span>
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-secondary text-secondary-foreground">
+                      {feature.category}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {feature.description}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <Switch
+                    id={`toggle-${feature.id}`}
+                    aria-label={`Toggle ${feature.name}`}
+                    checked={isEnabled}
+                    disabled={isToggling}
+                    onCheckedChange={(newVal) => handleToggleFeature(feature.id, newVal)}
+                  />
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </section>
 
       {/* Synchronization Diagnostics Section */}
       <section className="p-5 md:p-6 rounded-xl border border-border/80 bg-card/60 space-y-4 shadow-2xs">
