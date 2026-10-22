@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Calendar, Check, CheckSquare, FileText, Inbox, Link2, Sparkles, WifiOff } from "lucide-react"
+import { Calendar, Check, CheckSquare, FileText, Film, Inbox, Link2, Sparkles, WifiOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { captureItem, classifyInputLocally, type CaptureResult, type CaptureCategory } from "@/lib/db/capture"
@@ -21,6 +21,7 @@ const CATEGORIES: CategoryOption[] = [
   { id: "task", label: "Task", icon: CheckSquare },
   { id: "event", label: "Event", icon: Calendar },
   { id: "resource", label: "Resource", icon: Link2 },
+  { id: "watchlist", label: "Watchlist", icon: Film },
 ]
 
 export function CaptureBar({ onCaptureSuccess }: CaptureBarProps) {
@@ -131,9 +132,9 @@ export function CaptureBar({ onCaptureSuccess }: CaptureBarProps) {
             aria-label="Capture input"
           />
 
-          {/* Compact category selector buttons */}
+          {/* Compact category selector buttons with simple icons and hover tooltips */}
           <div
-            className="flex items-center gap-1 sm:gap-1.5 px-3 py-1.5 border-t border-border/40 overflow-x-auto scrollbar-none"
+            className="flex items-center gap-1 sm:gap-1.5 px-3 py-1.5 border-t border-border/40 overflow-visible"
             role="group"
             aria-label="Capture destination category"
           >
@@ -143,11 +144,13 @@ export function CaptureBar({ onCaptureSuccess }: CaptureBarProps) {
                 <button
                   key={id}
                   type="button"
+                  aria-label={label}
+                  title={label}
                   aria-pressed={isSelected}
                   disabled={isSaving}
                   onClick={() => handleCategoryClick(id)}
                   className={cn(
-                    "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all outline-none shrink-0 cursor-pointer",
+                    "group relative inline-flex items-center justify-center p-2 rounded-lg text-xs font-medium transition-all outline-none shrink-0 cursor-pointer",
                     "focus-visible:ring-2 focus-visible:ring-ring/50 select-none",
                     isSelected
                       ? "bg-secondary text-foreground font-semibold border border-border/80 shadow-2xs"
@@ -155,8 +158,16 @@ export function CaptureBar({ onCaptureSuccess }: CaptureBarProps) {
                     isSaving && "opacity-50 cursor-not-allowed"
                   )}
                 >
-                  <Icon className="size-3.5 shrink-0" aria-hidden="true" />
-                  <span>{label}</span>
+                  <Icon className="size-4 shrink-0" aria-hidden="true" />
+                  <span className="sr-only">{label}</span>
+
+                  {/* Tooltip on hover / focus */}
+                  <span
+                    role="tooltip"
+                    className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 rounded bg-popover px-2 py-0.5 text-[11px] font-medium text-popover-foreground shadow-xs border border-border/80 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-150 whitespace-nowrap z-20"
+                  >
+                    {label}
+                  </span>
                 </button>
               )
             })}
@@ -177,6 +188,10 @@ export function CaptureBar({ onCaptureSuccess }: CaptureBarProps) {
                     </span>
                   ))}
                 </div>
+              ) : selectedCategory && selectedCategory !== "inbox" ? (
+                <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
+                  Destination: <span className="capitalize font-semibold text-foreground">{selectedCategory}</span>
+                </span>
               ) : (
                 <span className="text-[11px] text-muted-foreground hidden md:inline">
                   Press <kbd className="font-mono bg-muted/80 px-1 py-0.5 rounded text-[10px] text-foreground/70">Enter</kbd> to save, <kbd className="font-mono bg-muted/80 px-1 py-0.5 rounded text-[10px] text-foreground/70">Shift+Enter</kbd> for new line

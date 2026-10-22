@@ -209,7 +209,7 @@ describe("Phase 1B: CaptureBar & Capture Flow", () => {
     expect(listItems[1]).toHaveTextContent("First captured thought")
   })
 
-  it("7. renders all 5 category buttons (Inbox, Note, Task, Event, Resource)", async () => {
+  it("7. renders all 6 category buttons (Inbox, Note, Task, Event, Resource, Watchlist) as simple icon buttons with tooltips", async () => {
     render(
       <AuthProvider>
         <CaptureBar />
@@ -224,12 +224,18 @@ describe("Phase 1B: CaptureBar & Capture Flow", () => {
     const taskBtn = screen.getByRole("button", { name: "Task" })
     const eventBtn = screen.getByRole("button", { name: "Event" })
     const resourceBtn = screen.getByRole("button", { name: "Resource" })
+    const watchlistBtn = screen.getByRole("button", { name: "Watchlist" })
 
     expect(inboxBtn).toHaveAttribute("type", "button")
     expect(noteBtn).toHaveAttribute("type", "button")
     expect(taskBtn).toHaveAttribute("type", "button")
     expect(eventBtn).toHaveAttribute("type", "button")
     expect(resourceBtn).toHaveAttribute("type", "button")
+    expect(watchlistBtn).toHaveAttribute("type", "button")
+
+    // Tooltip titles
+    expect(inboxBtn).toHaveAttribute("title", "Inbox")
+    expect(watchlistBtn).toHaveAttribute("title", "Watchlist")
 
     // Initially no category is selected (Inbox is default)
     expect(inboxBtn).toHaveAttribute("aria-pressed", "false")
@@ -237,6 +243,7 @@ describe("Phase 1B: CaptureBar & Capture Flow", () => {
     expect(taskBtn).toHaveAttribute("aria-pressed", "false")
     expect(eventBtn).toHaveAttribute("aria-pressed", "false")
     expect(resourceBtn).toHaveAttribute("aria-pressed", "false")
+    expect(watchlistBtn).toHaveAttribute("aria-pressed", "false")
   })
 
   it("8. clicking category highlights it, clicking another replaces it, clicking active category deselects it", async () => {
@@ -297,7 +304,7 @@ describe("Phase 1B: CaptureBar & Capture Flow", () => {
     expect(count).toBe(0)
   })
 
-  it("10. saving with explicit categories (Note, Task, Event, Resource) routes type correctly and resets category on success", async () => {
+  it("10. saving with explicit categories (Note, Task, Event, Resource, Watchlist) routes type and tags correctly and resets category on success", async () => {
     const user = userEvent.setup()
 
     render(
@@ -312,6 +319,7 @@ describe("Phase 1B: CaptureBar & Capture Flow", () => {
     const taskBtn = screen.getByRole("button", { name: "Task" })
     const eventBtn = screen.getByRole("button", { name: "Event" })
     const resourceBtn = screen.getByRole("button", { name: "Resource" })
+    const watchlistBtn = screen.getByRole("button", { name: "Watchlist" })
 
     // Capture Note
     await user.click(noteBtn)
@@ -359,6 +367,21 @@ describe("Phase 1B: CaptureBar & Capture Flow", () => {
     const resourceItem = items.find((i) => i.raw_input === "Interesting reference article text")
     expect(resourceItem?.type).toBe("resource")
     expect(resourceItem?.status).toBe("inbox")
+
+    // Capture Watchlist item
+    await user.click(watchlistBtn)
+    await user.type(textarea, "Oppenheimer (2023)")
+    await user.click(saveBtn)
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("Saved"))
+
+    items = await db.local_items.toArray()
+    const watchItem = items.find((i) => i.raw_input === "Oppenheimer (2023)")
+    expect(watchItem?.type).toBe("resource")
+    expect(watchItem?.ai_tags).toEqual(["Watchlist"])
+    expect(watchItem?.status).toBe("inbox")
+
+    // Category reset after save
+    expect(watchlistBtn).toHaveAttribute("aria-pressed", "false")
   })
 
   it("11. explicit selection takes precedence over automatic classification", async () => {
@@ -414,4 +437,5 @@ describe("Phase 1B: CaptureBar & Capture Flow", () => {
     mockAdd.mockRestore()
   })
 })
+
 
