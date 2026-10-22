@@ -115,12 +115,12 @@ export async function captureItem(
 
   // 3. Explicit user category takes precedence over deterministic auto-classification
   const isWatchlist = input.category === "watchlist"
-  const itemType: LocalItem["type"] =
-    input.category && input.category !== "inbox"
-      ? isWatchlist
-        ? "resource"
-        : input.category
-      : classification.type
+  let itemType: LocalItem["type"] = classification.type
+  if (input.category === "watchlist") {
+    itemType = "resource"
+  } else if (input.category && input.category !== "inbox") {
+    itemType = input.category
+  }
 
   const aiTags: string[] | null = isWatchlist
     ? ["Watchlist"]

@@ -381,7 +381,7 @@ describe("Phase 1B: CaptureBar & Capture Flow", () => {
     expect(watchItem?.status).toBe("inbox")
 
     // Category reset after save
-    expect(watchlistBtn).toHaveAttribute("aria-pressed", "false")
+    await waitFor(() => expect(watchlistBtn).toHaveAttribute("aria-pressed", "false"))
   })
 
   it("11. explicit selection takes precedence over automatic classification", async () => {
