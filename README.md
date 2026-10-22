@@ -199,46 +199,9 @@ The API runs locally at `http://localhost:8000` with interactive Swagger docs at
 
 ---
 
-### 3. Database Migrations (`supabase/`)
-
-Execute the versioned SQL migrations in your Supabase project in sequential order:
-
-1. `supabase/migrations/20261008000000_initial_schema.sql` — Base tables, items, tasks, resources, and RLS policies.
-2. `supabase/migrations/20261009000000_classify_item_rpc.sql` — Initial classification stored procedure.
-3. `supabase/migrations/20261010000000_classify_item_rpc_idempotent.sql` — Idempotent atomic classification RPC.
-4. `supabase/migrations/20261012000000_tasks_completed_idx.sql` — Planner queries performance indexing.
 
 ---
 
-## 📡 API Reference
-
-| Method | Endpoint | Description | Auth Required |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/health` | Service health status and readiness check | No |
-| `POST` | `/api/v1/enrich` | Extract OpenGraph metadata, title, and favicon from a URL | Optional |
-| `POST` | `/api/v1/classify` | AI advisory classification and summarization for captured text | Optional |
-
----
-
-```bash
-# Run full frontend test suite (210 tests across 30 suites)
-npm --prefix web test
-
-# Run cross-account isolation regression suite
-npm --prefix web test src/test/cross-account-isolation.test.tsx
-
-# TypeScript strict type checking (0 errors)
-npm --prefix web run typecheck
-
-# Codebase linting (0 errors)
-npm --prefix web run lint
-
-# Production PWA build verification
-npm --prefix web run build
-
-# Run backend test suite (8 tests passing)
-pytest api/tests/
-```
 
 ### Automated Test Matrix
 
