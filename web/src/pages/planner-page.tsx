@@ -20,6 +20,7 @@ import { TaskQuickAdd } from "@/components/planner/task-quick-add"
 import { WeeklyDashboard } from "@/components/planner/weekly-dashboard"
 import { WorkoutPlannerView } from "@/components/planner/workout-planner-view"
 import { DietPlannerView } from "@/components/planner/diet-planner-view"
+import { ExpenseTrackerView } from "@/components/planner/expense-tracker-view"
 
 export function PlannerPage() {
   const { user, isLoading: isAuthLoading } = useAuth()
@@ -132,6 +133,13 @@ export function PlannerPage() {
         setActiveTab("daily")
         navigate("/planner", { replace: true })
       }
+    } else if (submodule === "expenses") {
+      if (isFeatureEnabled("expense_tracker")) {
+        setActiveTab("expenses")
+      } else {
+        setActiveTab("daily")
+        navigate("/planner", { replace: true })
+      }
     }
   }, [submodule, isFeatureEnabled, navigate])
 
@@ -147,6 +155,11 @@ export function PlannerPage() {
       if (submodule === "diet") {
         navigate("/planner", { replace: true })
       }
+    } else if (activeTab === "expenses" && !isFeatureEnabled("expense_tracker")) {
+      setActiveTab("daily")
+      if (submodule === "expenses") {
+        navigate("/planner", { replace: true })
+      }
     }
   }, [activeTab, isFeatureEnabled, submodule, navigate])
 
@@ -156,6 +169,8 @@ export function PlannerPage() {
       navigate("/planner/workouts")
     } else if (newTab === "diet") {
       navigate("/planner/diet")
+    } else if (newTab === "expenses") {
+      navigate("/planner/expenses")
     } else if (submodule) {
       navigate("/planner")
     }
@@ -355,6 +370,11 @@ export function PlannerPage() {
       {/* Diet Planner Tab */}
       {activeTab === "diet" && isFeatureEnabled("diet_planner") && (
         <DietPlannerView userId={userId} selectedDate={selectedDate} />
+      )}
+
+      {/* Expense Tracker Tab */}
+      {activeTab === "expenses" && isFeatureEnabled("expense_tracker") && (
+        <ExpenseTrackerView userId={userId} selectedDate={selectedDate} />
       )}
     </div>
   )

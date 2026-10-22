@@ -24,6 +24,15 @@ export const FEATURE_REGISTRY: Record<string, FeatureDefinition> = {
     category: "Planner",
     status: "available",
   },
+  expense_tracker: {
+    id: "expense_tracker",
+    name: "Expense Tracker",
+    description: "Track daily expenses, payment accounts, and monthly budgets.",
+    defaultEnabled: false,
+    navigationTarget: "/planner/expenses",
+    category: "Planner",
+    status: "available",
+  },
 }
 
 /**

@@ -1,4 +1,4 @@
-import { BarChart3, Calendar, CheckSquare, ChevronLeft, ChevronRight, Dumbbell, UtensilsCrossed } from "lucide-react"
+import { BarChart3, Calendar, CheckSquare, ChevronLeft, ChevronRight, Dumbbell, Receipt, UtensilsCrossed } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { FeatureDefinition } from "@/lib/features/types"
 
@@ -62,6 +62,11 @@ export function PlannerHeader({
               <>
                 <UtensilsCrossed className="size-5 sm:size-6 text-primary shrink-0" />
                 <span>Diet Planner</span>
+              </>
+            ) : activeTab === "expenses" ? (
+              <>
+                <Receipt className="size-5 sm:size-6 text-primary shrink-0" />
+                <span>Expense Tracker</span>
               </>
             ) : (
               <>
@@ -169,6 +174,8 @@ export function PlannerHeader({
               ? "workouts"
               : mod.id === "diet_planner"
               ? "diet"
+              : mod.id === "expense_tracker"
+              ? "expenses"
               : mod.id
           const isSelected = activeTab === tabKey
           return (
@@ -189,6 +196,8 @@ export function PlannerHeader({
                 <Dumbbell className="size-3.5" />
               ) : mod.id === "diet_planner" ? (
                 <UtensilsCrossed className="size-3.5" />
+              ) : mod.id === "expense_tracker" ? (
+                <Receipt className="size-3.5" />
               ) : null}
               <span>{mod.name}</span>
             </button>

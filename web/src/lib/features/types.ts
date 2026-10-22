@@ -1,4 +1,4 @@
-export type FeatureId = "workout_planner" | "diet_planner" | (string & {})
+export type FeatureId = "workout_planner" | "diet_planner" | "expense_tracker" | (string & {})
 
 export interface FeatureDefinition {
   id: FeatureId

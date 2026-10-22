@@ -9,8 +9,8 @@ import {
 import * as SupabaseClientModule from "@/lib/supabase/client"
 
 describe("Phase 3: Per-User Feature Preferences", () => {
-  const testUserId = "user-prefs-test-1234"
-  const testUserId2 = "user-prefs-test-5678"
+  const testUserId = "11111111-1111-4111-a111-111111111111"
+  const testUserId2 = "22222222-2222-4222-a222-222222222222"
 
   beforeEach(() => {
     window.localStorage.clear()

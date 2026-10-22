@@ -54,6 +54,7 @@ describe("Phase 5: Planner Optional Modules Integration", () => {
     setCachedPreferences(testUserId, {
       workout_planner: false,
       diet_planner: false,
+      expense_tracker: false,
     })
 
     render(
@@ -73,6 +74,7 @@ describe("Phase 5: Planner Optional Modules Integration", () => {
     // Optional module tabs must NOT be present
     expect(screen.queryByRole("tab", { name: "Workout Planner view" })).not.toBeInTheDocument()
     expect(screen.queryByRole("tab", { name: "Diet Planner view" })).not.toBeInTheDocument()
+    expect(screen.queryByRole("tab", { name: "Expense Tracker view" })).not.toBeInTheDocument()
 
     // No empty module cards or placeholders
     expect(screen.queryByTestId("workout-planner-view")).not.toBeInTheDocument()
@@ -265,5 +267,28 @@ describe("Phase 5: Planner Optional Modules Integration", () => {
     expect(itemInDb).toBeDefined()
     expect(itemInDb?.title).toBe("Leg Day Squats")
     expect(itemInDb?.deleted_at).toBeNull()
+  })
+
+  it("7. when Expense Tracker is enabled, displays its tab and direct route renders the expense interface", async () => {
+    setCachedPreferences(testUserId, {
+      workout_planner: false,
+      diet_planner: false,
+      expense_tracker: true,
+    })
+
+    render(
+      <MemoryRouter initialEntries={["/planner/expenses"]}>
+        <FeatureProvider>
+          <Routes>
+            <Route path="/planner" element={<PlannerPage />} />
+            <Route path="/planner/:submodule" element={<PlannerPage />} />
+          </Routes>
+        </FeatureProvider>
+      </MemoryRouter>
+    )
+
+    const expenseTab = await screen.findByRole("tab", { name: "Expense Tracker view" })
+    expect(expenseTab).toBeInTheDocument()
+    expect(screen.getByText("Quick Expense")).toBeInTheDocument()
   })
 })

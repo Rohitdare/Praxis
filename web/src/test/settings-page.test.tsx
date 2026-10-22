@@ -267,10 +267,12 @@ describe("Phase 1E: SettingsPage Component", () => {
 
     const workoutSwitch = screen.getByRole("switch", { name: "Toggle Workout Planner" })
     const dietSwitch = screen.getByRole("switch", { name: "Toggle Diet Planner" })
+    const expenseSwitch = screen.getByRole("switch", { name: "Toggle Expense Tracker" })
 
     // Initially disabled by default
     expect(workoutSwitch).toHaveAttribute("aria-checked", "false")
     expect(dietSwitch).toHaveAttribute("aria-checked", "false")
+    expect(expenseSwitch).toHaveAttribute("aria-checked", "false")
 
     // Enable Workout Planner
     await user.click(workoutSwitch)

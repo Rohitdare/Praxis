@@ -28,11 +28,22 @@ describe("Phase 2: Centralized Feature Registry", () => {
     expect(diet.category).toBe("Planner")
     expect(diet.status).toBe("available")
     expect(diet.navigationTarget).toBe("/planner/diet")
+
+    const expense = FEATURE_REGISTRY["expense_tracker"]
+    expect(expense).toBeDefined()
+    expect(expense.id).toBe("expense_tracker")
+    expect(expense.name).toBe("Expense Tracker")
+    expect(expense.description).toBe("Track daily expenses, payment accounts, and monthly budgets.")
+    expect(expense.defaultEnabled).toBe(false)
+    expect(expense.category).toBe("Planner")
+    expect(expense.status).toBe("available")
+    expect(expense.navigationTarget).toBe("/planner/expenses")
   })
 
-  it("resolves both initial optional modules to disabled by default", () => {
+  it("resolves all optional modules to disabled by default", () => {
     expect(isFeatureDefaultEnabled("workout_planner")).toBe(false)
     expect(isFeatureDefaultEnabled("diet_planner")).toBe(false)
+    expect(isFeatureDefaultEnabled("expense_tracker")).toBe(false)
   })
 
   it("handles unknown or retired feature IDs safely", () => {
@@ -42,16 +53,21 @@ describe("Phase 2: Centralized Feature Registry", () => {
 
   it("returns all features via getAllFeatures without duplicate definitions", () => {
     const all = getAllFeatures()
-    expect(all.length).toBeGreaterThanOrEqual(2)
+    expect(all.length).toBeGreaterThanOrEqual(3)
     const ids = all.map((f) => f.id)
     expect(ids).toContain("workout_planner")
     expect(ids).toContain("diet_planner")
+    expect(ids).toContain("expense_tracker")
     expect(new Set(ids).size).toBe(ids.length)
   })
 
   it("filters features by category", () => {
     const plannerFeatures = getFeaturesByCategory("Planner")
-    expect(plannerFeatures.map((f) => f.id)).toEqual(["workout_planner", "diet_planner"])
+    expect(plannerFeatures.map((f) => f.id)).toEqual([
+      "workout_planner",
+      "diet_planner",
+      "expense_tracker",
+    ])
     expect(getFeaturesByCategory("UnknownCategory")).toEqual([])
   })
 })
