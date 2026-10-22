@@ -248,4 +248,59 @@ describe("Phase 2: ItemDetailPage Component", () => {
     // Assert that the success indicator was never rendered
     expect(screen.queryByText(/Saved/i)).not.toBeInTheDocument()
   })
+
+  it("7. automatically populates the single editable Title input from raw_input when title is null", async () => {
+    const rawInputOnlyItem = {
+      ...sampleItemDetail,
+      item: {
+        ...sampleItemDetail.item,
+        title: null,
+        raw_input: "test task -1",
+      },
+    }
+    vi.spyOn(itemService, "fetchItemDetail").mockResolvedValue(rawInputOnlyItem)
+    const updateSpy = vi.spyOn(itemService, "updateItemClassification").mockResolvedValue({
+      ...rawInputOnlyItem,
+      item: {
+        ...rawInputOnlyItem.item,
+        title: "test task -1 edited",
+      },
+    })
+    const user = userEvent.setup()
+
+    render(
+      <MemoryRouter initialEntries={["/items/item-abc-123"]}>
+        <Routes>
+          <Route path="/items/:id" element={<ItemDetailPage />} />
+          <Route path="/inbox" element={<div>Inbox View</div>} />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    // The single editable Title input must be pre-populated with "test task -1" instead of being blank
+    await waitFor(() => {
+      const titleInput = screen.getByLabelText(/Title/i)
+      expect(titleInput).toHaveValue("test task -1")
+    })
+
+    // User can edit the title directly
+    const titleInput = screen.getByLabelText(/Title/i)
+    await user.clear(titleInput)
+    await user.type(titleInput, "test task -1 edited")
+
+    const saveButton = screen.getByRole("button", { name: /Save changes/i })
+    await user.click(saveButton)
+
+    await waitFor(() => {
+      expect(updateSpy).toHaveBeenCalledWith(
+        "item-abc-123",
+        "user-123",
+        expect.objectContaining({
+          title: "test task -1 edited",
+        })
+      )
+      expect(screen.getByText("Inbox View")).toBeInTheDocument()
+    })
+  })
 })
+

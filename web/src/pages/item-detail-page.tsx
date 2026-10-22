@@ -73,7 +73,11 @@ export function ItemDetailPage() {
         if (ignore) return
 
         setRecord(data)
-        setTitle(data.item.title || "")
+        const initialTitle =
+          data.item.title && data.item.title.trim().length > 0 && data.item.title !== "Untitled Note"
+            ? data.item.title.trim()
+            : data.item.raw_input?.trim()?.split("\n")[0]?.slice(0, 200) || ""
+        setTitle(initialTitle)
         setContent(data.item.content || "")
         setType(data.item.type)
 

@@ -129,6 +129,9 @@ export async function captureItem(
     : null
 
   // 4. Build local_item record preserving exact raw input
+  const trimmedInput = input.rawInput.trim()
+  const derivedTitle = trimmedInput.split("\n")[0].trim().slice(0, 200) || null
+
   const localItem: LocalItem = {
     id: itemId,
     user_id: input.userId || null,
@@ -139,7 +142,7 @@ export async function captureItem(
     deleted_at: null,
     type: itemType,
     status: "inbox",
-    title: null,
+    title: derivedTitle,
     content: null,
     ai_tags: aiTags,
     synced: false,
