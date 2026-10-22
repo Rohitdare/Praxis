@@ -1,9 +1,12 @@
 import { db, type PersonalMemoryDB } from "./index"
 import type { LocalItem, OutboxRecord } from "./schema"
 
+export type CaptureCategory = "inbox" | "note" | "task" | "event" | "resource"
+
 export interface CaptureInput {
   rawInput: string
   userId?: string
+  category?: CaptureCategory
 }
 
 export interface CaptureResult {
@@ -110,7 +113,13 @@ export async function captureItem(
   // 2. Classify input deterministically (no remote/AI network calls)
   const classification = classifyInputLocally(input.rawInput)
 
-  // 3. Build local_item record preserving exact raw input
+  // 3. Explicit user category takes precedence over deterministic auto-classification
+  const itemType: LocalItem["type"] =
+    input.category && input.category !== "inbox"
+      ? input.category
+      : classification.type
+
+  // 4. Build local_item record preserving exact raw input
   const localItem: LocalItem = {
     id: itemId,
     user_id: input.userId || null,
@@ -119,11 +128,11 @@ export async function captureItem(
     created_at: now,
     updated_at: now,
     deleted_at: null,
-    type: classification.type,
+    type: itemType,
     status: "inbox",
     title: null,
     content: null,
-    ai_tags: classification.suggestedTags || null,
+    ai_tags: itemType === "resource" ? classification.suggestedTags || null : null,
     synced: false,
   }
 

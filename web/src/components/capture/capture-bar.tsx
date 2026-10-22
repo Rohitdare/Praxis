@@ -1,20 +1,40 @@
 import * as React from "react"
-import { Check, Sparkles, WifiOff } from "lucide-react"
+import { Calendar, Check, CheckSquare, FileText, Inbox, Link2, Sparkles, WifiOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { captureItem, classifyInputLocally, type CaptureResult } from "@/lib/db/capture"
+import { cn } from "@/lib/utils"
+import { captureItem, classifyInputLocally, type CaptureResult, type CaptureCategory } from "@/lib/db/capture"
 import { useAuth } from "@/lib/auth/auth-context"
 
 export interface CaptureBarProps {
   onCaptureSuccess?: (result: CaptureResult) => void
 }
 
+interface CategoryOption {
+  id: CaptureCategory
+  label: string
+  icon: React.ComponentType<{ className?: string }>
+}
+
+const CATEGORIES: CategoryOption[] = [
+  { id: "inbox", label: "Inbox", icon: Inbox },
+  { id: "note", label: "Note", icon: FileText },
+  { id: "task", label: "Task", icon: CheckSquare },
+  { id: "event", label: "Event", icon: Calendar },
+  { id: "resource", label: "Resource", icon: Link2 },
+]
+
 export function CaptureBar({ onCaptureSuccess }: CaptureBarProps) {
   const { user } = useAuth()
   const [input, setInput] = React.useState("")
+  const [selectedCategory, setSelectedCategory] = React.useState<CaptureCategory | null>(null)
   const [isFocused, setIsFocused] = React.useState(false)
   const [isSaving, setIsSaving] = React.useState(false)
   const [feedback, setFeedback] = React.useState<{ text: string; isOffline: boolean } | null>(null)
   const textareaRef = React.useRef<HTMLTextAreaElement>(null)
+
+  const handleCategoryClick = (cat: CaptureCategory) => {
+    setSelectedCategory((prev) => (prev === cat ? null : cat))
+  }
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) {
@@ -31,6 +51,7 @@ export function CaptureBar({ onCaptureSuccess }: CaptureBarProps) {
       const result = await captureItem({
         rawInput: input,
         userId: user?.id,
+        category: selectedCategory ?? undefined,
       })
 
       // Microcopy per design.md §12:
@@ -42,6 +63,7 @@ export function CaptureBar({ onCaptureSuccess }: CaptureBarProps) {
 
       setFeedback({ text: message, isOffline: result.isOffline })
       setInput("")
+      setSelectedCategory(null)
 
       if (onCaptureSuccess) {
         onCaptureSuccess(result)
@@ -109,9 +131,40 @@ export function CaptureBar({ onCaptureSuccess }: CaptureBarProps) {
             aria-label="Capture input"
           />
 
+          {/* Compact category selector buttons */}
+          <div
+            className="flex items-center gap-1 sm:gap-1.5 px-3 py-1.5 border-t border-border/40 overflow-x-auto scrollbar-none"
+            role="group"
+            aria-label="Capture destination category"
+          >
+            {CATEGORIES.map(({ id, label, icon: Icon }) => {
+              const isSelected = selectedCategory === id
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  aria-pressed={isSelected}
+                  disabled={isSaving}
+                  onClick={() => handleCategoryClick(id)}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all outline-none shrink-0 cursor-pointer",
+                    "focus-visible:ring-2 focus-visible:ring-ring/50 select-none",
+                    isSelected
+                      ? "bg-secondary text-foreground font-semibold border border-border/80 shadow-2xs"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50 border border-transparent",
+                    isSaving && "opacity-50 cursor-not-allowed"
+                  )}
+                >
+                  <Icon className="size-3.5 shrink-0" aria-hidden="true" />
+                  <span>{label}</span>
+                </button>
+              )
+            })}
+          </div>
+
           <div className="flex items-center justify-between px-3 pb-2.5 pt-1.5 border-t border-border/50 gap-2">
             <div className="flex items-center gap-2 min-w-0 flex-1">
-              {smartClassification ? (
+              {smartClassification && (!selectedCategory || selectedCategory === "inbox") ? (
                 <div
                   className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-secondary/80 border border-border/60 text-[11px] font-medium text-foreground/80 animate-in fade-in duration-150 max-w-[160px] sm:max-w-none truncate"
                   title="Smart capture suggestion"

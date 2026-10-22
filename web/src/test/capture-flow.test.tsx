@@ -208,4 +208,210 @@ describe("Phase 1B: CaptureBar & Capture Flow", () => {
     expect(listItems[0]).toHaveTextContent("https://supabase.com/docs")
     expect(listItems[1]).toHaveTextContent("First captured thought")
   })
+
+  it("7. renders all 5 category buttons (Inbox, Note, Task, Event, Resource)", async () => {
+    render(
+      <AuthProvider>
+        <CaptureBar />
+      </AuthProvider>
+    )
+
+    const categoriesGroup = screen.getByRole("group", { name: /Capture destination category/i })
+    expect(categoriesGroup).toBeInTheDocument()
+
+    const inboxBtn = screen.getByRole("button", { name: "Inbox" })
+    const noteBtn = screen.getByRole("button", { name: "Note" })
+    const taskBtn = screen.getByRole("button", { name: "Task" })
+    const eventBtn = screen.getByRole("button", { name: "Event" })
+    const resourceBtn = screen.getByRole("button", { name: "Resource" })
+
+    expect(inboxBtn).toHaveAttribute("type", "button")
+    expect(noteBtn).toHaveAttribute("type", "button")
+    expect(taskBtn).toHaveAttribute("type", "button")
+    expect(eventBtn).toHaveAttribute("type", "button")
+    expect(resourceBtn).toHaveAttribute("type", "button")
+
+    // Initially no category is selected (Inbox is default)
+    expect(inboxBtn).toHaveAttribute("aria-pressed", "false")
+    expect(noteBtn).toHaveAttribute("aria-pressed", "false")
+    expect(taskBtn).toHaveAttribute("aria-pressed", "false")
+    expect(eventBtn).toHaveAttribute("aria-pressed", "false")
+    expect(resourceBtn).toHaveAttribute("aria-pressed", "false")
+  })
+
+  it("8. clicking category highlights it, clicking another replaces it, clicking active category deselects it", async () => {
+    const user = userEvent.setup()
+
+    render(
+      <AuthProvider>
+        <CaptureBar />
+      </AuthProvider>
+    )
+
+    const noteBtn = screen.getByRole("button", { name: "Note" })
+    const taskBtn = screen.getByRole("button", { name: "Task" })
+    const inboxBtn = screen.getByRole("button", { name: "Inbox" })
+
+    // Select Note
+    await user.click(noteBtn)
+    expect(noteBtn).toHaveAttribute("aria-pressed", "true")
+    expect(taskBtn).toHaveAttribute("aria-pressed", "false")
+
+    // Clicking Task replaces Note selection
+    await user.click(taskBtn)
+    expect(noteBtn).toHaveAttribute("aria-pressed", "false")
+    expect(taskBtn).toHaveAttribute("aria-pressed", "true")
+
+    // Clicking Task again deselects it (returns to default)
+    await user.click(taskBtn)
+    expect(taskBtn).toHaveAttribute("aria-pressed", "false")
+
+    // Clicking Inbox selects Inbox
+    await user.click(inboxBtn)
+    expect(inboxBtn).toHaveAttribute("aria-pressed", "true")
+
+    // Clicking Inbox again deselects it
+    await user.click(inboxBtn)
+    expect(inboxBtn).toHaveAttribute("aria-pressed", "false")
+  })
+
+  it("9. category button clicks do not submit the form", async () => {
+    const user = userEvent.setup()
+
+    render(
+      <AuthProvider>
+        <CaptureBar />
+      </AuthProvider>
+    )
+
+    const textarea = screen.getByLabelText("Capture input")
+    await user.type(textarea, "Draft idea content")
+
+    const noteBtn = screen.getByRole("button", { name: "Note" })
+    await user.click(noteBtn)
+
+    // Form has not submitted
+    expect(screen.queryByRole("status")).not.toBeInTheDocument()
+    expect(textarea).toHaveValue("Draft idea content")
+    const count = await db.local_items.count()
+    expect(count).toBe(0)
+  })
+
+  it("10. saving with explicit categories (Note, Task, Event, Resource) routes type correctly and resets category on success", async () => {
+    const user = userEvent.setup()
+
+    render(
+      <AuthProvider>
+        <CaptureBar />
+      </AuthProvider>
+    )
+
+    const textarea = screen.getByLabelText("Capture input")
+    const saveBtn = screen.getByRole("button", { name: "Save" })
+    const noteBtn = screen.getByRole("button", { name: "Note" })
+    const taskBtn = screen.getByRole("button", { name: "Task" })
+    const eventBtn = screen.getByRole("button", { name: "Event" })
+    const resourceBtn = screen.getByRole("button", { name: "Resource" })
+
+    // Capture Note
+    await user.click(noteBtn)
+    await user.type(textarea, "A philosophical note on architecture")
+    await user.click(saveBtn)
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("Saved"))
+
+    let items = await db.local_items.toArray()
+    expect(items[0].type).toBe("note")
+    expect(items[0].raw_input).toBe("A philosophical note on architecture")
+    expect(items[0].status).toBe("inbox")
+
+    // Category reset after save
+    expect(noteBtn).toHaveAttribute("aria-pressed", "false")
+
+    // Capture Task
+    await user.click(taskBtn)
+    await user.type(textarea, "Refactor the database queries")
+    await user.click(saveBtn)
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("Saved"))
+
+    items = await db.local_items.toArray()
+    const taskItem = items.find((i) => i.raw_input === "Refactor the database queries")
+    expect(taskItem?.type).toBe("task")
+    expect(taskItem?.status).toBe("inbox")
+
+    // Capture Event (does not invent dates/times)
+    await user.click(eventBtn)
+    await user.type(textarea, "Meeting with team next Wednesday")
+    await user.click(saveBtn)
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("Saved"))
+
+    items = await db.local_items.toArray()
+    const eventItem = items.find((i) => i.raw_input === "Meeting with team next Wednesday")
+    expect(eventItem?.type).toBe("event")
+    expect(eventItem?.status).toBe("inbox")
+
+    // Capture Resource
+    await user.click(resourceBtn)
+    await user.type(textarea, "Interesting reference article text")
+    await user.click(saveBtn)
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("Saved"))
+
+    items = await db.local_items.toArray()
+    const resourceItem = items.find((i) => i.raw_input === "Interesting reference article text")
+    expect(resourceItem?.type).toBe("resource")
+    expect(resourceItem?.status).toBe("inbox")
+  })
+
+  it("11. explicit selection takes precedence over automatic classification", async () => {
+    const user = userEvent.setup()
+
+    render(
+      <AuthProvider>
+        <CaptureBar />
+      </AuthProvider>
+    )
+
+    const textarea = screen.getByLabelText("Capture input")
+    const saveBtn = screen.getByRole("button", { name: "Save" })
+    const noteBtn = screen.getByRole("button", { name: "Note" })
+
+    // URL normally auto-classifies as resource, but user selected Note
+    await user.click(noteBtn)
+    await user.type(textarea, "https://github.com/facebook/react")
+    await user.click(saveBtn)
+
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("Saved"))
+
+    const items = await db.local_items.toArray()
+    expect(items[0].type).toBe("note")
+    expect(items[0].raw_input).toBe("https://github.com/facebook/react")
+  })
+
+  it("12. failed save retains entered content and selected category", async () => {
+    const user = userEvent.setup()
+    // Force transaction failure
+    const mockAdd = vi.spyOn(db.local_items, "add").mockRejectedValueOnce(new Error("IndexedDB quota exceeded"))
+
+    render(
+      <AuthProvider>
+        <CaptureBar />
+      </AuthProvider>
+    )
+
+    const textarea = screen.getByLabelText("Capture input")
+    const saveBtn = screen.getByRole("button", { name: "Save" })
+    const taskBtn = screen.getByRole("button", { name: "Task" })
+
+    await user.click(taskBtn)
+    await user.type(textarea, "Unsaved task content")
+    await user.click(saveBtn)
+
+    // Content and category retained on failure
+    await waitFor(() => {
+      expect(textarea).toHaveValue("Unsaved task content")
+      expect(taskBtn).toHaveAttribute("aria-pressed", "true")
+    })
+
+    mockAdd.mockRestore()
+  })
 })
+
