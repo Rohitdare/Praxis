@@ -285,6 +285,22 @@ button:focus-visible, a:focus-visible {
 }
 
 @media (min-width: 1080px) {
+  .hero-section {
+    min-height: 94vh;
+    padding-top: 2.5rem;
+    padding-bottom: 5rem;
+  }
+
+  .hero-container {
+    max-width: 1440px;
+    min-height: 640px;
+    position: relative;
+  }
+
+  .hero-content {
+    margin: 2.5rem 0;
+  }
+
   .hero-card {
     display: block;
     position: absolute;
@@ -297,11 +313,11 @@ button:focus-visible, a:focus-visible {
     z-index: 25 !important;
   }
 
-  /* Note Card: Top-Left */
+  /* Note Card: Top-Left (Landscape 1536x1024) */
   .hero-card-top-left {
-    top: 6%;
-    left: 1.5%;
-    width: clamp(230px, 18vw, 290px);
+    top: 4%;
+    left: 0.5%;
+    width: clamp(200px, 15vw, 255px);
     transform: rotate(-3deg);
     z-index: 5;
   }
@@ -309,37 +325,37 @@ button:focus-visible, a:focus-visible {
     transform: rotate(-0.5deg) scale(1.03);
   }
 
-  /* Link Card: Top-Right */
-  .hero-card-top-right {
-    top: 5%;
-    right: 1.5%;
-    width: clamp(240px, 19vw, 305px);
-    transform: rotate(2.5deg);
-    z-index: 4;
-  }
-  .hero-card-top-right:hover {
-    transform: rotate(0.5deg) scale(1.03);
-  }
-
-  /* To-Do Card: Bottom-Left */
+  /* To-Do Card: Bottom-Left (Landscape 1536x1024) */
   .hero-card-bottom-left {
-    bottom: 8%;
-    left: 3.5%;
-    width: clamp(220px, 17vw, 280px);
-    transform: rotate(1.5deg);
+    bottom: 4%;
+    left: 2%;
+    width: clamp(195px, 14.5vw, 245px);
+    transform: rotate(2deg);
     z-index: 6;
   }
   .hero-card-bottom-left:hover {
     transform: rotate(0deg) scale(1.03);
   }
 
-  /* Visual Ideas Card: Bottom-Right */
+  /* Link Card: Top-Right (Landscape 1536x1024) */
+  .hero-card-top-right {
+    top: 4%;
+    right: 1.5%;
+    width: clamp(215px, 16vw, 270px);
+    transform: rotate(2.5deg);
+    z-index: 5;
+  }
+  .hero-card-top-right:hover {
+    transform: rotate(0.5deg) scale(1.03);
+  }
+
+  /* Visual Ideas Card: Bottom-Right (Portrait 1024x1536) - scaled to match landscape height */
   .hero-card-bottom-right {
-    bottom: 7%;
-    right: 3%;
-    width: clamp(240px, 18.5vw, 295px);
-    transform: rotate(-2deg);
-    z-index: 7;
+    bottom: 2%;
+    right: 4%;
+    width: clamp(135px, 10.5vw, 170px);
+    transform: rotate(-2.5deg);
+    z-index: 6;
   }
   .hero-card-bottom-right:hover {
     transform: rotate(0deg) scale(1.03);
