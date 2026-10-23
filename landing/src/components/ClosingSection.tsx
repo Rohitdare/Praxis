@@ -1,11 +1,10 @@
 import { ArrowUpRight } from "lucide-react"
-import logoImg from "../../assets/brand/Minimalist Praxis Cat Logo.png"
 
 interface ClosingSectionProps {
   appUrl?: string
 }
 
-export function ClosingSection({ appUrl = "http://localhost:5173" }: ClosingSectionProps) {
+export function ClosingSection({ appUrl = "https://praxis-memo.vercel.app/" }: ClosingSectionProps) {
   return (
     <section
       id="closing"
@@ -36,26 +35,6 @@ export function ClosingSection({ appUrl = "http://localhost:5173" }: ClosingSect
           </div>
         </div>
       </div>
-
-      {/* Minimalistic Dark Ending Rail */}
-      <footer className="landing-footer" role="contentinfo">
-        <div className="container footer-container">
-          <div className="footer-brand">
-            <img
-              src={logoImg}
-              alt="Praxis Logo"
-              className="footer-logo"
-              width={22}
-              height={22}
-            />
-            <span>Praxis</span>
-          </div>
-
-          <p className="footer-note">
-            Quiet personal workspace. Built for longevity.
-          </p>
-        </div>
-      </footer>
     </section>
   )
 }

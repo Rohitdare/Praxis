@@ -101,38 +101,59 @@ button:focus-visible, a:focus-visible {
    Navigation
    ========================================================================== */
 .navbar {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
   z-index: 50;
   width: 100%;
   padding: 1.5rem 0;
   background: transparent;
+  pointer-events: none;
 }
 
 .nav-container {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  pointer-events: auto;
 }
 
 .brand-link {
   display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.65rem;
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--text-primary-light);
+  color: #0F1318;
+  padding: 0.4rem 1rem 0.4rem 0.65rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
 }
 
-.brand-logo {
-  width: 34px;
-  height: 34px;
+.brand-link:hover {
+  background: rgba(255, 255, 255, 0.85);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+.brand-logo-svg {
+  width: 26px;
+  height: 29px;
   object-fit: contain;
-  border-radius: 8px;
+  display: block;
 }
 
 .brand-name {
   font-size: 1.35rem;
   letter-spacing: -0.02em;
+  color: #0F1318;
+  line-height: 1;
 }
 
 .nav-cta-btn {
@@ -161,18 +182,39 @@ button:focus-visible, a:focus-visible {
 .hero-section {
   position: relative;
   width: 100%;
-  min-height: 88vh;
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-top: 1rem;
+  padding-top: clamp(5.5rem, 8vw, 7.5rem);
   padding-bottom: clamp(4rem, 8vw, 7rem);
-  background: linear-gradient(180deg, #F8F7F2 0%, #F8F7F2 80%, #EBEAE5 100%);
+  background-color: #2A2A2A; /* Fallback matching the bottom fade */
   overflow: hidden;
+}
+
+/* Cinematic Countryside Illustration Background */
+.hero-cinematic-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.hero-countryside-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
 }
 
 .hero-container {
   position: relative;
+  z-index: 10;
   max-width: 1360px;
   display: flex;
   flex-direction: column;
@@ -196,12 +238,15 @@ button:focus-visible, a:focus-visible {
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--text-secondary-light);
+  color: #1A1A18;
   margin-bottom: 1.25rem;
   padding: 0.35rem 0.95rem;
   border-radius: 9999px;
-  background: rgba(24, 23, 21, 0.04);
-  border: 1px solid rgba(24, 23, 21, 0.06);
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .hero-headline {
@@ -210,23 +255,26 @@ button:focus-visible, a:focus-visible {
   line-height: 1.05;
   letter-spacing: -0.025em;
   font-weight: 400;
-  color: var(--text-primary-light);
+  color: #0F1318;
   max-width: 720px;
   margin-bottom: 1.35rem;
+  text-shadow: 0 1px 18px rgba(255, 255, 255, 0.45);
 }
 
 .headline-emphasis {
   font-style: italic;
   font-family: var(--font-serif);
-  color: #161513;
+  color: #0A0D12;
 }
 
 .hero-supporting {
   font-size: clamp(1.05rem, 1.8vw, 1.28rem);
   line-height: 1.55;
-  color: var(--text-secondary-light);
+  color: #1F252D;
   max-width: 540px;
   margin: 0 auto 2.25rem;
+  font-weight: 450;
+  text-shadow: 0 1px 12px rgba(255, 255, 255, 0.35);
 }
 
 .hero-actions {
@@ -261,14 +309,22 @@ button:focus-visible, a:focus-visible {
   align-items: center;
   gap: 0.4rem;
   font-size: 0.85rem;
-  color: var(--text-secondary-light);
-  font-weight: 500;
+  color: #1A1A18;
+  font-weight: 600;
   cursor: pointer;
-  padding: 0.5rem 0.75rem;
+  padding: 0.55rem 1rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .scroll-cue:hover {
-  color: var(--text-primary-light);
+  background: rgba(255, 255, 255, 0.85);
+  color: #000000;
+  transform: translateY(-1px);
 }
 
 .scroll-cue svg {
@@ -286,19 +342,21 @@ button:focus-visible, a:focus-visible {
 
 @media (min-width: 1080px) {
   .hero-section {
-    min-height: 94vh;
-    padding-top: 2.5rem;
-    padding-bottom: 5rem;
+    min-height: 100vh;
+    padding-top: clamp(6.5rem, 9vw, 8rem);
+    padding-bottom: 6rem;
   }
 
   .hero-container {
     max-width: 1440px;
-    min-height: 640px;
+    min-height: 660px;
     position: relative;
+    justify-content: flex-start;
   }
 
   .hero-content {
-    margin: 2.5rem 0;
+    margin-top: 0.5rem;
+    margin-bottom: 3.5rem;
   }
 
   .hero-card {
@@ -315,7 +373,7 @@ button:focus-visible, a:focus-visible {
 
   /* Note Card: Top-Left (Landscape 1536x1024) */
   .hero-card-top-left {
-    top: 4%;
+    top: 2%;
     left: 0.5%;
     width: clamp(200px, 15vw, 255px);
     transform: rotate(-3deg);
@@ -339,7 +397,7 @@ button:focus-visible, a:focus-visible {
 
   /* Link Card: Top-Right (Landscape 1536x1024) */
   .hero-card-top-right {
-    top: 4%;
+    top: 2%;
     right: 1.5%;
     width: clamp(215px, 16vw, 270px);
     transform: rotate(2.5deg);
@@ -426,12 +484,13 @@ button:focus-visible, a:focus-visible {
 }
 
 /* ==========================================================================
-   Transition Section (Mid-Tone Gradient Foundation)
+   Transition Section (Mid-Tone to Dark Gradient Bridge)
    ========================================================================== */
 .transition-section {
   position: relative;
   padding: clamp(5.5rem, 10vw, 10rem) 0;
-  background: linear-gradient(180deg, #EBEAE5 0%, #D8D6CF 30%, #767570 70%, #252523 94%, #181816 100%);
+  background: linear-gradient(180deg, #2A2A2A 0%, #242422 25%, #1C1C1A 65%, #181816 100%);
+  color: #EDECE6;
 }
 
 .transition-header {
@@ -446,7 +505,7 @@ button:focus-visible, a:focus-visible {
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #42403A;
+  color: #A5A39B;
   margin-bottom: 0.85rem;
 }
 
@@ -455,14 +514,14 @@ button:focus-visible, a:focus-visible {
   font-size: clamp(2.3rem, 4.6vw, 3.8rem);
   line-height: 1.08;
   font-weight: 400;
-  color: #161513;
+  color: #F8F7F2;
   margin-bottom: 1.2rem;
 }
 
 .transition-lead {
   font-size: clamp(1rem, 1.5vw, 1.18rem);
   line-height: 1.6;
-  color: #383630;
+  color: #B5B3AA;
 }
 
 .pillars-grid {
@@ -481,28 +540,29 @@ button:focus-visible, a:focus-visible {
 .pillar-card {
   padding: 2.25rem 2rem;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(24, 23, 21, 0.08);
-  box-shadow: 0 10px 28px -6px rgba(0, 0, 0, 0.06);
+  background: rgba(30, 30, 28, 0.65);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.35);
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
-  transition: transform 0.3s ease, background 0.3s ease;
+  transition: transform 0.3s ease, background 0.3s ease, border-color 0.3s ease;
 }
 
 .pillar-card:hover {
   transform: translateY(-4px);
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(38, 38, 35, 0.85);
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
 .pillar-icon-box {
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: #161513;
-  color: #FFFFFF;
+  background: #FFFFFF;
+  color: #161513;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -512,14 +572,14 @@ button:focus-visible, a:focus-visible {
 .pillar-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #161513;
+  color: #F8F7F2;
   letter-spacing: -0.02em;
 }
 
 .pillar-desc {
   font-size: 0.95rem;
   line-height: 1.55;
-  color: #4A4842;
+  color: #B5B3AA;
 }
 
 /* ==========================================================================
@@ -709,42 +769,301 @@ button:focus-visible, a:focus-visible {
   outline-offset: 3px;
 }
 
-/* Footer */
-.landing-footer {
+/* ==========================================================================
+   Redesigned Two-Part Footer
+   ========================================================================== */
+.praxis-footer {
   width: 100%;
-  padding: 3rem 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  font-size: 0.85rem;
-  color: var(--text-muted-dark);
-  margin-top: clamp(4rem, 8vw, 7rem);
+  display: flex;
+  flex-direction: column;
+  background-color: #070707;
 }
 
-.footer-container {
+/* Part A: Refined Dark Editorial Invitation Card */
+.footer-intro-section {
+  width: 100%;
+  padding: clamp(3rem, 6vw, 5.5rem) 0 2rem;
+  background: linear-gradient(180deg, #090909 0%, #070707 100%);
+}
+
+.footer-intro-card {
+  position: relative;
+  width: 100%;
+  max-width: 1060px;
+  margin: 0 auto;
+  padding: clamp(3.2rem, 6vw, 4.8rem) clamp(1.8rem, 4vw, 3.5rem);
+  border-radius: 24px;
+  background: radial-gradient(100% 120% at 50% 0%, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.015) 100%), #0D0D0C;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.footer-intro-eyebrow {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #9E9C95;
+  margin-bottom: 1.15rem;
+  padding: 0.35rem 0.95rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.footer-intro-statement {
+  font-size: clamp(2.2rem, 4.2vw, 3.8rem);
+  line-height: 1.08;
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  color: #F8F7F2;
+  margin-bottom: 1rem;
+  max-width: 720px;
+}
+
+.footer-intro-sub {
+  font-size: clamp(1rem, 1.6vw, 1.2rem);
+  line-height: 1.6;
+  color: #A8A69E;
+  margin-bottom: 2.25rem;
+  max-width: 540px;
+}
+
+.footer-intro-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #070707 !important;
+  background-color: #F8F7F2;
+  padding: 0.85rem 2rem;
+  border-radius: 9999px;
+  box-shadow: 0 4px 18px rgba(255, 255, 255, 0.12);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.footer-intro-cta:hover {
+  background-color: #FFFFFF;
+  color: #000000 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(255, 255, 255, 0.22);
+}
+
+.footer-intro-cta:hover svg {
+  transform: translate(2px, -2px);
+}
+
+.footer-intro-cta svg {
+  transition: transform 0.2s ease;
+}
+
+/* Part B & C & D: Deep Dark Footer Panel */
+.footer-dark-panel {
+  width: 100%;
+  background-color: #070707;
+  color: #EDECE6;
+  padding-top: clamp(3rem, 5vw, 4.5rem);
+  padding-bottom: 2.25rem;
+}
+
+.footer-panel-container {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Part B: Three Navigation Columns */
+.footer-nav-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(2rem, 5vw, 4rem);
+  margin-bottom: clamp(3.5rem, 6vw, 6rem);
+}
+
+.footer-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.footer-col-heading {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(237, 236, 230, 0.45);
+}
+
+.footer-link-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.footer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.95rem;
+  color: #C8C6BD;
+  transition: color 0.2s ease, transform 0.2s ease;
+  width: fit-content;
+}
+
+.footer-link:hover {
+  color: #FFFFFF;
+  transform: translateX(3px);
+}
+
+.footer-link:focus-visible {
+  outline: 2px solid #EDECE6;
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.footer-text-muted {
+  font-size: 0.9rem;
+  color: rgba(237, 236, 230, 0.38);
+}
+
+.external-link svg {
+  opacity: 0.6;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.external-link:hover svg {
+  opacity: 1;
+  transform: translate(1px, -1px);
+}
+
+/* Part C: Oversized Praxis Wordmark */
+.footer-wordmark-container {
+  width: 100%;
+  overflow: hidden; /* Guards against horizontal page overflow */
+  padding: 1rem 0;
+  margin-bottom: 2.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.footer-wordmark {
+  font-size: clamp(3.6rem, 15vw, 12.8rem);
+  line-height: 0.88;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  color: #EDE8DE;
+  text-align: center;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  user-select: none;
+  cursor: default;
+  margin: 0;
+  padding: 0;
+}
+
+/* Oversized Wordmark Character Interaction */
+.wordmark-char {
+  display: inline-block;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), color 0.35s ease;
+  will-change: transform;
+}
+
+.footer-wordmark:hover .wordmark-char {
+  color: #FFFFFF;
+  transform: translateY(-4px);
+  transition-delay: calc(var(--char-index) * 22ms);
+}
+
+/* Part D: Bottom Legal Row */
+.footer-bottom-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 1.25rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  font-size: 0.82rem;
+  color: rgba(237, 236, 230, 0.5);
 }
 
-.footer-brand {
+.footer-bottom-left {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  color: var(--text-secondary-dark);
-  font-weight: 500;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
-.footer-logo {
-  width: 22px;
-  height: 22px;
+.footer-bottom-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: #EDECE6;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.footer-bottom-brand:hover {
+  color: #FFFFFF;
+}
+
+.footer-bottom-logo {
+  width: 18px;
+  height: 20px;
   object-fit: contain;
-  filter: brightness(0.9);
+  filter: invert(1) brightness(1.2);
 }
 
-.footer-note {
-  font-size: 0.8rem;
-  color: var(--text-muted-dark);
+.footer-bottom-name {
+  letter-spacing: -0.01em;
+}
+
+.footer-bottom-dot {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.footer-tagline {
+  color: rgba(237, 236, 230, 0.55);
+}
+
+.footer-copyright {
+  color: rgba(237, 236, 230, 0.45);
+}
+
+/* Responsive Breakpoints for Footer */
+@media (max-width: 860px) {
+  .footer-nav-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2.5rem;
+  }
+
+  .footer-wordmark {
+    font-size: clamp(3.2rem, 14.5vw, 7.5rem);
+  }
+}
+
+@media (max-width: 580px) {
+  .footer-nav-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .footer-wordmark {
+    font-size: clamp(2.8rem, 14.2vw, 4.8rem);
+    letter-spacing: -0.03em;
+  }
+
+  .footer-bottom-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.85rem;
+  }
 }
 
 /* Accessibility: Reduced Motion */
@@ -760,7 +1079,7 @@ button:focus-visible, a:focus-visible {
     transform: none !important;
   }
 
-  .pillar-card:hover, .primary-btn:hover, .closing-btn:hover {
+  .pillar-card:hover, .primary-btn:hover, .closing-btn:hover, .footer-intro-cta:hover, .footer-link:hover, .footer-wordmark:hover .wordmark-char {
     transform: none !important;
   }
 }

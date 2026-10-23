@@ -5,12 +5,13 @@ import noteCardImg from "../../assets/animate/Praxis Note Card Mockup.webp"
 import linkCardImg from "../../assets/animate/Design Inspiration Link Card.webp"
 import todoCardImg from "../../assets/animate/Minimalist Today To-Do Card.webp"
 import visualCardImg from "../../assets/animate/Praxis Visual Ideas Card.webp"
+import countrysideImg from "../../assets/animate/Serene Countryside Beneath Summer Skies.png"
 
 interface HeroSectionProps {
   appUrl?: string
 }
 
-export function HeroSection({ appUrl = "http://localhost:5173" }: HeroSectionProps) {
+export function HeroSection({ appUrl = "https://praxis-memo.vercel.app/" }: HeroSectionProps) {
   const handleScrollToWorkflow = (e: MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault()
     const target = document.getElementById("workflow")
@@ -27,6 +28,19 @@ export function HeroSection({ appUrl = "http://localhost:5173" }: HeroSectionPro
       data-theme="light"
       aria-labelledby="hero-heading"
     >
+      {/* Cinematic Countryside Illustration Background */}
+      <div className="hero-cinematic-bg" aria-hidden="true">
+        <img
+          src={countrysideImg}
+          alt=""
+          className="hero-countryside-img"
+          loading="eager"
+          decoding="async"
+          width={1672}
+          height={941}
+        />
+      </div>
+
       <div className="container hero-container">
         {/* Four Independent Floating Artifact Cards framing the headline on Desktop */}
         

@@ -1,20 +1,20 @@
-import logoImg from "../../assets/brand/Minimalist Praxis Cat Logo.png"
+import praxisIconSvg from "../../assets/brand/praxis-icon.svg"
 
 interface NavbarProps {
   appUrl?: string
 }
 
-export function Navbar({ appUrl = "http://localhost:5173" }: NavbarProps) {
+export function Navbar({ appUrl = "https://praxis-memo.vercel.app/" }: NavbarProps) {
   return (
     <header className="navbar" role="banner">
       <div className="container nav-container">
         <a href="#hero" className="brand-link" aria-label="Praxis Home">
           <img
-            src={logoImg}
+            src={praxisIconSvg}
             alt="Praxis Logo"
-            className="brand-logo"
-            width={34}
-            height={34}
+            className="brand-logo-svg"
+            width={28}
+            height={31}
           />
           <span className="brand-name font-serif">Praxis</span>
         </a>

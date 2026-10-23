@@ -3,9 +3,10 @@ import { HeroSection } from "./components/HeroSection"
 import { WorkflowSection } from "./components/WorkflowSection"
 import { ProductSection } from "./components/ProductSection"
 import { ClosingSection } from "./components/ClosingSection"
+import { Footer } from "./components/Footer"
 
 export function App() {
-  const appUrl = (import.meta as any).env?.VITE_APP_URL || "http://localhost:5173"
+  const appUrl = (import.meta as any).env?.VITE_APP_URL || "https://praxis-memo.vercel.app/"
 
   return (
     <div className="praxis-landing-wrapper">
@@ -16,6 +17,7 @@ export function App() {
         <ProductSection />
         <ClosingSection appUrl={appUrl} />
       </main>
+      <Footer appUrl={appUrl} />
     </div>
   )
 }
