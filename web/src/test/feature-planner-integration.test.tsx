@@ -75,10 +75,12 @@ describe("Phase 5: Planner Optional Modules Integration", () => {
     expect(screen.queryByRole("tab", { name: "Workout Planner view" })).not.toBeInTheDocument()
     expect(screen.queryByRole("tab", { name: "Diet Planner view" })).not.toBeInTheDocument()
     expect(screen.queryByRole("tab", { name: "Expense Tracker view" })).not.toBeInTheDocument()
+    expect(screen.queryByRole("tab", { name: "Wishlist view" })).not.toBeInTheDocument()
 
     // No empty module cards or placeholders
     expect(screen.queryByTestId("workout-planner-view")).not.toBeInTheDocument()
     expect(screen.queryByTestId("diet-planner-view")).not.toBeInTheDocument()
+    expect(screen.queryByTestId("wishlist-view")).not.toBeInTheDocument()
   })
 
   it("2. when Workout Planner is enabled, displays its tab and renders the workout interface", async () => {
@@ -106,9 +108,11 @@ describe("Phase 5: Planner Optional Modules Integration", () => {
     // Click Workout Planner tab
     await user.click(workoutTab)
 
-    // Workout Planner view appears
+    // Workout Planner view appears and header shows clean back button
     expect(await screen.findByTestId("workout-planner-view")).toBeInTheDocument()
     expect(screen.getByRole("heading", { level: 2, name: "Workout Planner" })).toBeInTheDocument()
+    expect(screen.queryByRole("tablist")).not.toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Back to Planner" })).toBeInTheDocument()
 
     // Add a routine
     const routineInput = screen.getByLabelText("Workout routine title")
@@ -157,6 +161,8 @@ describe("Phase 5: Planner Optional Modules Integration", () => {
 
     expect(await screen.findByTestId("diet-planner-view")).toBeInTheDocument()
     expect(screen.getByRole("heading", { level: 2, name: "Diet Planner" })).toBeInTheDocument()
+    expect(screen.queryByRole("tablist")).not.toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Back to Planner" })).toBeInTheDocument()
 
     // Add a planned meal
     const mealInput = screen.getByLabelText("Meal item name")
@@ -269,15 +275,18 @@ describe("Phase 5: Planner Optional Modules Integration", () => {
     expect(itemInDb?.deleted_at).toBeNull()
   })
 
-  it("7. when Expense Tracker is enabled, displays its tab and direct route renders the expense interface", async () => {
+  it("7. when Expense Tracker is enabled, displays its tab in planner, allows navigation, and shows back button while hiding tablist", async () => {
     setCachedPreferences(testUserId, {
       workout_planner: false,
       diet_planner: false,
       expense_tracker: true,
+      wishlist: false,
     })
 
+    const user = userEvent.setup()
+
     render(
-      <MemoryRouter initialEntries={["/planner/expenses"]}>
+      <MemoryRouter initialEntries={["/planner"]}>
         <FeatureProvider>
           <Routes>
             <Route path="/planner" element={<PlannerPage />} />
@@ -287,8 +296,69 @@ describe("Phase 5: Planner Optional Modules Integration", () => {
       </MemoryRouter>
     )
 
+    // In normal planner view, Expense Tracker tab should be present
     const expenseTab = await screen.findByRole("tab", { name: "Expense Tracker view" })
     expect(expenseTab).toBeInTheDocument()
+
+    // Clicking Expense Tracker tab navigates to Expense Tracker view
+    await user.click(expenseTab)
+
+    // In Expense Tracker view, tablist is hidden and only Expense Tracker + Back button are visible
+    expect(screen.queryByRole("tablist")).not.toBeInTheDocument()
+    const backBtn = screen.getByRole("button", { name: "Back to Planner" })
+    expect(backBtn).toBeInTheDocument()
     expect(screen.getByText("Quick Expense")).toBeInTheDocument()
+
+    // Clicking Back button returns to standard Planner
+    await user.click(backBtn)
+    expect(await screen.findByRole("tablist")).toBeInTheDocument()
+    expect(screen.getByRole("tab", { name: "Daily Planner view" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    )
+  })
+
+  it("8. when Wishlist is enabled, displays its tab in planner, allows navigation, and shows back button while hiding tablist", async () => {
+    setCachedPreferences(testUserId, {
+      workout_planner: false,
+      diet_planner: false,
+      expense_tracker: false,
+      wishlist: true,
+    })
+
+    const user = userEvent.setup()
+
+    render(
+      <MemoryRouter initialEntries={["/planner"]}>
+        <FeatureProvider>
+          <Routes>
+            <Route path="/planner" element={<PlannerPage />} />
+            <Route path="/planner/:submodule" element={<PlannerPage />} />
+          </Routes>
+        </FeatureProvider>
+      </MemoryRouter>
+    )
+
+    // In normal planner view, Wishlist tab should be present
+    const wishlistTab = await screen.findByRole("tab", { name: "Wishlist view" })
+    expect(wishlistTab).toBeInTheDocument()
+
+    // Clicking Wishlist tab navigates to Wishlist view
+    await user.click(wishlistTab)
+
+    // In Wishlist view, tablist is hidden and only Wishlist + Back button are visible
+    expect(screen.queryByRole("tablist")).not.toBeInTheDocument()
+    const backBtn = screen.getByRole("button", { name: "Back to Planner" })
+    expect(backBtn).toBeInTheDocument()
+    expect(await screen.findByTestId("wishlist-view")).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Save to Wishlist" })).toBeInTheDocument()
+
+    // Clicking Back button returns to standard Planner
+    await user.click(backBtn)
+    expect(await screen.findByRole("tablist")).toBeInTheDocument()
+    expect(screen.getByRole("tab", { name: "Daily Planner view" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    )
   })
 })

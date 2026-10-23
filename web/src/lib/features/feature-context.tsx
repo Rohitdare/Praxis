@@ -158,6 +158,7 @@ export function useFeatures(): FeatureContextValue {
         workout_planner: isFeatureDefaultEnabled("workout_planner"),
         diet_planner: isFeatureDefaultEnabled("diet_planner"),
         expense_tracker: isFeatureDefaultEnabled("expense_tracker"),
+        wishlist: isFeatureDefaultEnabled("wishlist"),
       },
       isLoading: false,
       error: null,

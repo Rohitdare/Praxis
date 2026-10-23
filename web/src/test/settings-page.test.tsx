@@ -87,6 +87,12 @@ describe("Phase 1E: SettingsPage Component", () => {
     ).toBeInTheDocument()
     expect(screen.getByText("Diet Planner")).toBeInTheDocument()
     expect(screen.getByText("Plan meals and organize daily nutrition.")).toBeInTheDocument()
+    expect(screen.getByText("Wishlist")).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        "Save items you want to buy, track priorities and target prices, and manage future purchases."
+      )
+    ).toBeInTheDocument()
 
     expect(screen.getByRole("heading", { name: "Synchronization" })).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: "Data Portability & Export" })).toBeInTheDocument()
@@ -268,17 +274,27 @@ describe("Phase 1E: SettingsPage Component", () => {
     const workoutSwitch = screen.getByRole("switch", { name: "Toggle Workout Planner" })
     const dietSwitch = screen.getByRole("switch", { name: "Toggle Diet Planner" })
     const expenseSwitch = screen.getByRole("switch", { name: "Toggle Expense Tracker" })
+    const wishlistSwitch = screen.getByRole("switch", { name: "Toggle Wishlist" })
 
     // Initially disabled by default
     expect(workoutSwitch).toHaveAttribute("aria-checked", "false")
     expect(dietSwitch).toHaveAttribute("aria-checked", "false")
     expect(expenseSwitch).toHaveAttribute("aria-checked", "false")
+    expect(wishlistSwitch).toHaveAttribute("aria-checked", "false")
 
     // Enable Workout Planner
     await user.click(workoutSwitch)
     await waitFor(() => {
       expect(workoutSwitch).toHaveAttribute("aria-checked", "true")
       expect(dietSwitch).toHaveAttribute("aria-checked", "false")
+      expect(wishlistSwitch).toHaveAttribute("aria-checked", "false")
+    })
+
+    // Enable Wishlist
+    await user.click(wishlistSwitch)
+    await waitFor(() => {
+      expect(workoutSwitch).toHaveAttribute("aria-checked", "true")
+      expect(wishlistSwitch).toHaveAttribute("aria-checked", "true")
     })
 
     // Enable Diet Planner

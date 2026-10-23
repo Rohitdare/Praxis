@@ -38,12 +38,25 @@ describe("Phase 2: Centralized Feature Registry", () => {
     expect(expense.category).toBe("Planner")
     expect(expense.status).toBe("available")
     expect(expense.navigationTarget).toBe("/planner/expenses")
+
+    const wishlist = FEATURE_REGISTRY["wishlist"]
+    expect(wishlist).toBeDefined()
+    expect(wishlist.id).toBe("wishlist")
+    expect(wishlist.name).toBe("Wishlist")
+    expect(wishlist.description).toBe(
+      "Save items you want to buy, track priorities and target prices, and manage future purchases."
+    )
+    expect(wishlist.defaultEnabled).toBe(false)
+    expect(wishlist.category).toBe("Planner")
+    expect(wishlist.status).toBe("available")
+    expect(wishlist.navigationTarget).toBe("/planner/wishlist")
   })
 
   it("resolves all optional modules to disabled by default", () => {
     expect(isFeatureDefaultEnabled("workout_planner")).toBe(false)
     expect(isFeatureDefaultEnabled("diet_planner")).toBe(false)
     expect(isFeatureDefaultEnabled("expense_tracker")).toBe(false)
+    expect(isFeatureDefaultEnabled("wishlist")).toBe(false)
   })
 
   it("handles unknown or retired feature IDs safely", () => {
@@ -53,11 +66,12 @@ describe("Phase 2: Centralized Feature Registry", () => {
 
   it("returns all features via getAllFeatures without duplicate definitions", () => {
     const all = getAllFeatures()
-    expect(all.length).toBeGreaterThanOrEqual(3)
+    expect(all.length).toBeGreaterThanOrEqual(4)
     const ids = all.map((f) => f.id)
     expect(ids).toContain("workout_planner")
     expect(ids).toContain("diet_planner")
     expect(ids).toContain("expense_tracker")
+    expect(ids).toContain("wishlist")
     expect(new Set(ids).size).toBe(ids.length)
   })
 
@@ -67,6 +81,7 @@ describe("Phase 2: Centralized Feature Registry", () => {
       "workout_planner",
       "diet_planner",
       "expense_tracker",
+      "wishlist",
     ])
     expect(getFeaturesByCategory("UnknownCategory")).toEqual([])
   })

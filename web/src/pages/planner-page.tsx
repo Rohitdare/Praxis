@@ -21,6 +21,7 @@ import { WeeklyDashboard } from "@/components/planner/weekly-dashboard"
 import { WorkoutPlannerView } from "@/components/planner/workout-planner-view"
 import { DietPlannerView } from "@/components/planner/diet-planner-view"
 import { ExpenseTrackerView } from "@/components/planner/expense-tracker-view"
+import { WishlistView } from "@/components/planner/wishlist-view"
 
 export function PlannerPage() {
   const { user, isLoading: isAuthLoading } = useAuth()
@@ -140,6 +141,13 @@ export function PlannerPage() {
         setActiveTab("daily")
         navigate("/planner", { replace: true })
       }
+    } else if (submodule === "wishlist") {
+      if (isFeatureEnabled("wishlist")) {
+        setActiveTab("wishlist")
+      } else {
+        setActiveTab("daily")
+        navigate("/planner", { replace: true })
+      }
     }
   }, [submodule, isFeatureEnabled, navigate])
 
@@ -160,6 +168,11 @@ export function PlannerPage() {
       if (submodule === "expenses") {
         navigate("/planner", { replace: true })
       }
+    } else if (activeTab === "wishlist" && !isFeatureEnabled("wishlist")) {
+      setActiveTab("daily")
+      if (submodule === "wishlist") {
+        navigate("/planner", { replace: true })
+      }
     }
   }, [activeTab, isFeatureEnabled, submodule, navigate])
 
@@ -171,6 +184,8 @@ export function PlannerPage() {
       navigate("/planner/diet")
     } else if (newTab === "expenses") {
       navigate("/planner/expenses")
+    } else if (newTab === "wishlist") {
+      navigate("/planner/wishlist")
     } else if (submodule) {
       navigate("/planner")
     }
@@ -375,6 +390,11 @@ export function PlannerPage() {
       {/* Expense Tracker Tab */}
       {activeTab === "expenses" && isFeatureEnabled("expense_tracker") && (
         <ExpenseTrackerView userId={userId} selectedDate={selectedDate} />
+      )}
+
+      {/* Wishlist Tab */}
+      {activeTab === "wishlist" && isFeatureEnabled("wishlist") && (
+        <WishlistView userId={userId} selectedDate={selectedDate} />
       )}
     </div>
   )

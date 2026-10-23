@@ -33,6 +33,15 @@ export const FEATURE_REGISTRY: Record<string, FeatureDefinition> = {
     category: "Planner",
     status: "available",
   },
+  wishlist: {
+    id: "wishlist",
+    name: "Wishlist",
+    description: "Save items you want to buy, track priorities and target prices, and manage future purchases.",
+    defaultEnabled: false,
+    navigationTarget: "/planner/wishlist",
+    category: "Planner",
+    status: "available",
+  },
 }
 
 /**
