@@ -180,7 +180,28 @@ The web client runs locally at `http://localhost:5173`.
 
 ---
 
-### 2. Backend API (`api/`)
+### 2. Marketing Landing Page (`landing/`)
+
+```bash
+# Navigate to landing page directory
+cd landing
+
+# Install dependencies
+npm install
+
+# Start local Vite development server
+npm run dev
+
+# Or build and preview production bundle
+npm run build
+npm run preview
+```
+
+The landing page runs locally at `http://localhost:5174`.
+
+---
+
+### 3. Backend API (`api/`)
 
 ```bash
 # Navigate to API directory
@@ -198,10 +219,6 @@ uvicorn src.personal_memory_api.main:app --reload --port 8000
 The API runs locally at `http://localhost:8000` with interactive Swagger docs at `http://localhost:8000/docs`.
 
 ---
-
-
----
-
 
 ### Automated Test Matrix
 
@@ -222,6 +239,7 @@ The API runs locally at `http://localhost:8000` with interactive Swagger docs at
 praxis/
 ├── api/             # Auxiliary FastAPI microservice (Render deployment)
 ├── docs/            # Architecture decision records, PRD, design tokens, security audits
+├── landing/         # Marketing landing page (React 19, Vite, editorial design system)
 ├── supabase/        # PostgreSQL schema migrations, RLS policies, stored procedures
 └── web/             # React 18 SPA (Vite, Tailwind CSS, Dexie v2, PWA)
 ```
