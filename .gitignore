@@ -78,3 +78,8 @@ Thumbs.db
 # Archify & GitHub Actions / Workflows
 .archify/
 .github/
+
+# Temporary test scripts & browser automation temp dirs
+*.cjs
+.chrome-temp-*/
+

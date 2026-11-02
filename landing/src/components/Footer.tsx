@@ -1,6 +1,7 @@
-import type { MouseEvent } from "react"
+import { useRef, useState, type MouseEvent } from "react"
 import { ArrowUpRight } from "lucide-react"
 import praxisIconSvg from "../../assets/brand/praxis-icon.svg"
+import { FooterCat } from "./FooterCat"
 
 interface FooterProps {
   appUrl?: string
@@ -8,12 +9,39 @@ interface FooterProps {
 
 export function Footer({ appUrl = "https://praxis-memo.vercel.app/" }: FooterProps) {
   const currentYear = new Date().getFullYear()
+  const wordmarkContainerRef = useRef<HTMLDivElement>(null)
+  const lettersRef = useRef<(HTMLSpanElement | null)[]>([])
+  const [activeLetterIndex, setActiveLetterIndex] = useState<number>(1)
+  const [isHopped, setIsHopped] = useState<boolean>(false)
 
   const handleSmoothScroll = (e: MouseEvent<HTMLAnchorElement>, targetId: string) => {
     e.preventDefault()
     const target = document.getElementById(targetId)
     if (target) {
       target.scrollIntoView({ behavior: "smooth" })
+    }
+  }
+
+  const handleWordmarkPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!lettersRef.current.length) return
+    const clientX = e.clientX
+    let closestIndex = activeLetterIndex
+    let minDistance = Infinity
+
+    lettersRef.current.forEach((el, index) => {
+      if (!el) return
+      const rect = el.getBoundingClientRect()
+      const charCenter = rect.left + rect.width / 2
+      const dist = Math.abs(clientX - charCenter)
+      if (dist < minDistance) {
+        minDistance = dist
+        closestIndex = index
+      }
+    })
+
+    if (closestIndex !== activeLetterIndex) {
+      setIsHopped(false)
+      setActiveLetterIndex(closestIndex)
     }
   }
 
@@ -156,14 +184,36 @@ export function Footer({ appUrl = "https://praxis-memo.vercel.app/" }: FooterPro
             </div>
           </nav>
 
-          {/* Part C: Oversized Praxis Wordmark with Subtle Character Interaction */}
-          <div className="footer-wordmark-container" aria-label="Praxis Wordmark">
+          {/* Part C: Oversized Praxis Wordmark with Interactive Cat */}
+          <div
+            ref={wordmarkContainerRef}
+            className="footer-wordmark-container"
+            aria-label="Praxis Wordmark"
+            onPointerMove={handleWordmarkPointerMove}
+          >
+            <FooterCat
+              containerRef={wordmarkContainerRef}
+              lettersRef={lettersRef}
+              activeLetterIndex={activeLetterIndex}
+              isHopped={isHopped}
+            />
             <h2 className="footer-wordmark font-serif" aria-label="PRAXIS">
               {"PRAXIS".split("").map((char, index) => (
                 <span
                   key={index}
+                  ref={(el) => {
+                    lettersRef.current[index] = el
+                  }}
                   className="wordmark-char"
                   style={{ "--char-index": index } as React.CSSProperties}
+                  onMouseEnter={() => {
+                    setIsHopped(false)
+                    setActiveLetterIndex(index)
+                  }}
+                  onClick={() => {
+                    setIsHopped(true)
+                    setActiveLetterIndex(index)
+                  }}
                 >
                   {char}
                 </span>

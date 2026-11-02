@@ -24,13 +24,13 @@
 
   /* Elevation & Shadows */
   --shadow-paper: 0 16px 36px -10px rgba(35, 30, 20, 0.12),
-                  0 4px 12px -2px rgba(35, 30, 20, 0.05),
-                  0 0 0 1px rgba(35, 30, 20, 0.05);
+    0 4px 12px -2px rgba(35, 30, 20, 0.05),
+    0 0 0 1px rgba(35, 30, 20, 0.05);
   --shadow-paper-hover: 0 24px 52px -12px rgba(35, 30, 20, 0.22),
-                        0 8px 24px -4px rgba(35, 30, 20, 0.1),
-                        0 0 0 1px rgba(35, 30, 20, 0.08);
+    0 8px 24px -4px rgba(35, 30, 20, 0.1),
+    0 0 0 1px rgba(35, 30, 20, 0.08);
   --shadow-screen: 0 32px 72px -16px rgba(0, 0, 0, 0.75),
-                   0 0 0 1px rgba(255, 255, 255, 0.1);
+    0 0 0 1px rgba(255, 255, 255, 0.1);
 
   /* Fonts */
   --font-serif: "Instrument Serif", Georgia, serif;
@@ -38,7 +38,9 @@
 }
 
 /* Reset & Overflow Defense */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -55,7 +57,8 @@ html {
 }
 
 body {
-  overflow-x: clip; /* Non-negotiable horizontal overflow gate */
+  overflow-x: clip;
+  /* Non-negotiable horizontal overflow gate */
   width: 100%;
   min-height: 100vh;
 }
@@ -85,14 +88,16 @@ body {
 }
 
 /* Interactive Elements */
-a, button {
+a,
+button {
   font-family: inherit;
   color: inherit;
   text-decoration: none;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-button:focus-visible, a:focus-visible {
+button:focus-visible,
+a:focus-visible {
   outline: 2px solid #161513;
   outline-offset: 3px;
 }
@@ -188,7 +193,8 @@ button:focus-visible, a:focus-visible {
   justify-content: center;
   padding-top: clamp(5.5rem, 8vw, 7.5rem);
   padding-bottom: clamp(4rem, 8vw, 7rem);
-  background-color: #2A2A2A; /* Fallback matching the bottom fade */
+  background-color: #2A2A2A;
+  /* Fallback matching the bottom fade */
   overflow: hidden;
 }
 
@@ -337,7 +343,8 @@ button:focus-visible, a:focus-visible {
 
 /* Floating Artifact Cards (Desktop Frame) */
 .hero-card {
-  display: none; /* Shown via media query on desktop */
+  display: none;
+  /* Shown via media query on desktop */
 }
 
 @media (min-width: 1080px) {
@@ -379,6 +386,7 @@ button:focus-visible, a:focus-visible {
     transform: rotate(-3deg);
     z-index: 5;
   }
+
   .hero-card-top-left:hover {
     transform: rotate(-0.5deg) scale(1.03);
   }
@@ -391,6 +399,7 @@ button:focus-visible, a:focus-visible {
     transform: rotate(2deg);
     z-index: 6;
   }
+
   .hero-card-bottom-left:hover {
     transform: rotate(0deg) scale(1.03);
   }
@@ -403,6 +412,7 @@ button:focus-visible, a:focus-visible {
     transform: rotate(2.5deg);
     z-index: 5;
   }
+
   .hero-card-top-right:hover {
     transform: rotate(0.5deg) scale(1.03);
   }
@@ -415,6 +425,7 @@ button:focus-visible, a:focus-visible {
     transform: rotate(-2.5deg);
     z-index: 6;
   }
+
   .hero-card-bottom-right:hover {
     transform: rotate(0deg) scale(1.03);
   }
@@ -625,16 +636,55 @@ button:focus-visible, a:focus-visible {
   margin: 0 auto;
 }
 
-.showcase-stack {
+.showcase-stack,
+.showcase-stack-stage {
   display: flex;
   flex-direction: column;
   gap: clamp(4rem, 8vw, 7rem);
+  width: 100%;
+  position: relative;
 }
 
-.showcase-item {
+.showcase-item,
+.showcase-card {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
+  width: 100%;
+  position: relative;
+  max-width: min(1020px, 88vw);
+  margin: 0 auto;
+}
+
+/* Pinned Stacking Mode (activated on desktop/tablet via GSAP matchMedia) */
+.showcase-stack-stage.is-stacked {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  align-items: start;
+  justify-items: center;
+  gap: 0;
+  position: relative;
+  width: 100%;
+}
+
+.showcase-stack-stage.is-stacked .showcase-card {
+  grid-area: 1 / 1 / 2 / 2;
+  will-change: transform, opacity, filter;
+  width: 100%;
+}
+
+.showcase-card-1 {
+  z-index: 1;
+}
+
+.showcase-card-2 {
+  z-index: 2;
+}
+
+.showcase-stack-stage.is-stacked .showcase-card-2 .frame-browser {
+  box-shadow: 0 32px 85px -16px rgba(0, 0, 0, 0.95),
+    0 0 0 1px rgba(255, 255, 255, 0.16);
 }
 
 .showcase-caption {
@@ -644,6 +694,7 @@ button:focus-visible, a:focus-visible {
   flex-wrap: wrap;
   gap: 1rem;
   padding: 0 0.5rem;
+  min-height: 2.2rem;
 }
 
 .caption-label {
@@ -664,6 +715,8 @@ button:focus-visible, a:focus-visible {
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: var(--shadow-screen);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .frame-chrome {
@@ -674,6 +727,7 @@ button:focus-visible, a:focus-visible {
   align-items: center;
   padding: 0 1.2rem;
   gap: 0.6rem;
+  flex-shrink: 0;
 }
 
 .chrome-dots {
@@ -699,7 +753,6 @@ button:focus-visible, a:focus-visible {
   width: 100%;
   height: auto;
   display: block;
-  object-fit: cover;
 }
 
 /* ==========================================================================
@@ -942,11 +995,15 @@ button:focus-visible, a:focus-visible {
   transform: translate(1px, -1px);
 }
 
-/* Part C: Oversized Praxis Wordmark */
+/* Part C: Oversized Praxis Wordmark with Cat Playground */
 .footer-wordmark-container {
   width: 100%;
-  overflow: hidden; /* Guards against horizontal page overflow */
-  padding: 1rem 0;
+  position: relative;
+  /* Allow full vertical overflow so the cat is never clipped */
+  overflow: visible;
+  /* Abundant headroom so cat sits comfortably below border and above letters */
+  padding-top: clamp(4.2rem, 6.5vw, 5.5rem);
+  padding-bottom: 1rem;
   margin-bottom: 2.5rem;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
@@ -965,19 +1022,208 @@ button:focus-visible, a:focus-visible {
   cursor: default;
   margin: 0;
   padding: 0;
+  position: relative;
 }
 
 /* Oversized Wordmark Character Interaction */
 .wordmark-char {
   display: inline-block;
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), color 0.35s ease;
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.25s ease;
   will-change: transform;
 }
 
-.footer-wordmark:hover .wordmark-char {
+.wordmark-char:hover {
   color: #FFFFFF;
   transform: translateY(-4px);
-  transition-delay: calc(var(--char-index) * 22ms);
+}
+
+/* Praxis Interactive Cat Mascot */
+.praxis-footer-cat {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: clamp(54px, 6.5vw, 72px);
+  height: clamp(42px, 5vw, 56px);
+  pointer-events: none;
+  z-index: 10;
+  /* Center horizontally over letter anchor and sit paws directly on top edge */
+  margin-left: calc(-1 * clamp(54px, 6.5vw, 72px) / 2);
+  margin-top: calc(-1 * clamp(42px, 5vw, 56px) + 6px);
+  will-change: transform;
+}
+
+.cat-visual-wrap {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.75));
+}
+
+.cat-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+/* Cat Idle & Breathing */
+.praxis-footer-cat.is-sitting .cat-body {
+  animation: catBreathe 3.2s ease-in-out infinite;
+  transform-origin: 38px 48px;
+}
+
+.praxis-footer-cat.is-sitting .cat-tail {
+  animation: catTailIdle 3.8s ease-in-out infinite;
+  transform-origin: 18px 42px;
+}
+
+.praxis-footer-cat.is-sitting .cat-tail-inner {
+  animation: catTailIdle 3.8s ease-in-out infinite;
+  transform-origin: 18px 42px;
+}
+
+@keyframes catBreathe {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.025, 0.985);
+  }
+}
+
+@keyframes catTailIdle {
+
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  40% {
+    transform: rotate(5deg);
+  }
+
+  75% {
+    transform: rotate(-4deg);
+  }
+}
+
+/* Cat Walking / Crawling Motion */
+.praxis-footer-cat.is-walking .cat-visual-wrap {
+  animation: catWalkBob 0.3s ease-in-out infinite alternate;
+}
+
+.praxis-footer-cat.is-walking .cat-paw-fl {
+  animation: catPawFrontStep 0.3s ease-in-out infinite alternate;
+  transform-origin: 45px 44px;
+}
+
+.praxis-footer-cat.is-walking .cat-paw-fr {
+  animation: catPawFrontStep 0.3s ease-in-out infinite alternate-reverse;
+  transform-origin: 52px 44px;
+}
+
+.praxis-footer-cat.is-walking .cat-paw-back {
+  animation: catPawBackStep 0.3s ease-in-out infinite alternate;
+  transform-origin: 24px 50px;
+}
+
+.praxis-footer-cat.is-walking .cat-tail {
+  animation: catTailWalk 0.3s ease-in-out infinite alternate;
+  transform-origin: 18px 42px;
+}
+
+.praxis-footer-cat.is-walking .cat-tail-inner {
+  animation: catTailWalk 0.3s ease-in-out infinite alternate;
+  transform-origin: 18px 42px;
+}
+
+@keyframes catWalkBob {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  100% {
+    transform: translateY(-3px) rotate(1.5deg);
+  }
+}
+
+@keyframes catPawFrontStep {
+  0% {
+    transform: translateY(0) rotate(-6deg);
+  }
+
+  100% {
+    transform: translateY(-2.5px) rotate(8deg);
+  }
+}
+
+@keyframes catPawBackStep {
+  0% {
+    transform: translateY(-2px);
+  }
+
+  100% {
+    transform: translateY(1px);
+  }
+}
+
+@keyframes catTailWalk {
+  0% {
+    transform: rotate(-6deg);
+  }
+
+  100% {
+    transform: rotate(8deg);
+  }
+}
+
+/* Curious / Poke State */
+.praxis-footer-cat.is-curious .cat-head {
+  animation: catHeadTilt 0.6s ease-in-out;
+  transform-origin: 52px 25px;
+}
+
+@keyframes catHeadTilt {
+
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  30% {
+    transform: rotate(6deg);
+  }
+
+  70% {
+    transform: rotate(-3deg);
+  }
+}
+
+/* Happy settle wiggles */
+.praxis-footer-cat.is-happy {
+  animation: catHappyHop 0.5s ease-out;
+}
+
+@keyframes catHappyHop {
+  0% {
+    transform: scale(1);
+  }
+
+  40% {
+    transform: scale(1.08, 0.94);
+  }
+
+  70% {
+    transform: scale(0.96, 1.04);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 /* Part D: Bottom Legal Row */
@@ -1075,11 +1321,40 @@ button:focus-visible, a:focus-visible {
     scroll-behavior: auto !important;
   }
 
-  .hero-card, .mobile-card-item {
+  .showcase-stack-stage {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: clamp(4rem, 8vw, 7rem) !important;
+  }
+
+  .showcase-card {
+    transform: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+  }
+
+  .showcase-caption {
+    opacity: 1 !important;
     transform: none !important;
   }
 
-  .pillar-card:hover, .primary-btn:hover, .closing-btn:hover, .footer-intro-cta:hover, .footer-link:hover, .footer-wordmark:hover .wordmark-char {
+  .hero-card,
+  .mobile-card-item {
     transform: none !important;
+  }
+
+  .pillar-card:hover,
+  .primary-btn:hover,
+  .closing-btn:hover,
+  .footer-intro-cta:hover,
+  .footer-link:hover,
+  .footer-wordmark:hover .wordmark-char {
+    transform: none !important;
+  }
+
+  .praxis-footer-cat,
+  .praxis-footer-cat * {
+    animation: none !important;
+    transition: none !important;
   }
 }
